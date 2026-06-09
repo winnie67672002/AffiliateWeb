@@ -14,6 +14,14 @@ export interface PostFrontmatter {
   category: string
   tags?: string[]
   coverImage?: string
+affiliate?: {
+  name: string
+  description: string
+  href: string
+  badge?: string
+  price?: string
+  image?: string
+}[]
 }
 
 export interface PostMeta extends PostFrontmatter {
@@ -65,4 +73,13 @@ export function getAllSlugs(): string[] {
     .readdirSync(postsDirectory)
     .filter((f) => f.endsWith('.md'))
     .map((f) => f.replace(/\.md$/, ''))
+}
+
+//內部連結系統
+export function getRelatedPosts(currentSlug: string, category: string) {
+  const posts = getAllPosts()
+
+  return posts
+    .filter((p) => p.slug !== currentSlug && p.category === category)
+    .slice(0, 3)
 }
