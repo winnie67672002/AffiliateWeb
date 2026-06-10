@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+/*
+ * Base font size: 17px (預設 16px → 106.25%)
+ * 這是調整整站字體大小最穩定的做法。
+ * Tailwind 所有 rem 值（文字、間距）會等比例縮放，
+ * 相對比例不變，layout 不破版。
+ * 若想微調：16px = 100%、17px = 106.25%、18px = 112.5%
+ */
+html {
+  font-size: 106.25%; /* 17px */
+}
+
 :root {
   --background: #ffffff;
   --foreground: #111111;
