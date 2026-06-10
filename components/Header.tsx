@@ -9,7 +9,7 @@ export default function Header() {
             G
           </span>
           <span className="font-semibold text-gray-900 tracking-tight group-hover:text-gray-600 transition-colors">
-            Good Picks Lab
+            選好研究所 Good Picks Lab
           </span>
         </Link>
         <nav className="flex items-center gap-1">

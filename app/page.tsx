@@ -55,7 +55,7 @@ export default function HomePage() {
                 href={`/blog?category=${encodeURIComponent(cat.label)}`}
                 className="flex flex-col items-center gap-2 p-4 rounded-xl border border-gray-100 bg-white hover:border-gray-300 hover:shadow-sm transition-all group"
               >
-                <span className="text-2xl">{cat.icon}</span>
+                {/* <span className="text-2xl">{cat.icon}</span> */}
                 <span className="text-xs text-gray-600 font-medium group-hover:text-gray-900 transition-colors text-center">
                   {cat.label}
                 </span>
