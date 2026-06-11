@@ -1,11 +1,19 @@
 import fs from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
-import { remark } from 'remark'
-import remarkGfm from 'remark-gfm'
-import remarkHtml from 'remark-html'
 
 const postsDirectory = path.join(process.cwd(), 'content/posts')
+
+export interface AffiliateItem {
+  id: string
+  name: string
+  description: string
+  href: string
+  badge?: string
+  badgeVariant?: 'best' | 'editor' | 'recommended' | 'top' | 'sale'
+  price?: string
+  image?: string
+}
 
 export interface PostFrontmatter {
   title: string
@@ -14,14 +22,7 @@ export interface PostFrontmatter {
   category: string
   tags?: string[]
   coverImage?: string
-affiliate?: {
-  name: string
-  description: string
-  href: string
-  badge?: string
-  price?: string
-  image?: string
-}[]
+  affiliate?: AffiliateItem[]
 }
 
 export interface PostMeta extends PostFrontmatter {
@@ -29,7 +30,7 @@ export interface PostMeta extends PostFrontmatter {
 }
 
 export interface Post extends PostMeta {
-  contentHtml: string
+  content: string
 }
 
 function ensureDirectory() {
@@ -61,10 +62,7 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
   const fileContents = fs.readFileSync(fullPath, 'utf8')
   const { data, content } = matter(fileContents)
 
-  const processed = await remark().use(remarkGfm).use(remarkHtml).process(content)
-  const contentHtml = processed.toString()
-
-  return { slug, ...(data as PostFrontmatter), contentHtml }
+  return { slug, ...(data as PostFrontmatter), content }
 }
 
 export function getAllSlugs(): string[] {

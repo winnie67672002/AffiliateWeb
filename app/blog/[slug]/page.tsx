@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Script from 'next/script'
 import { notFound } from 'next/navigation'
 import { getPostBySlug, getAllSlugs, getRelatedPosts } from '@/lib/posts'
-import AffiliateCard from '@/components/AffiliateCard'
+import PostContent from '@/components/PostContent'
 
 export async function generateStaticParams() {
   return getAllSlugs().map((slug) => ({ slug }))
@@ -114,30 +114,8 @@ export default async function BlogPostPage({
           </p>
         </header>
 
-        {/* ── Article Body ────────────────────────────────── */}
-        <div className="prose" dangerouslySetInnerHTML={{ __html: post.contentHtml }} />
-
-        {/* ── Affiliate Cards ─────────────────────────────── */}
-        {post.affiliate && post.affiliate.length > 0 && (
-          <section className="mt-10">
-            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">
-              推薦商品
-            </h2>
-            {post.affiliate.map((item, i) => (
-              <AffiliateCard
-                key={i}
-                name={item.name}
-                description={item.description}
-                href={item.href}
-                badge={item.badge}
-                badgeVariant={i === 0 ? 'best' : 'recommended'}
-                price={item.price}
-                image={item.image}
-                ctaText="查看價格 →"
-              />
-            ))}
-          </section>
-        )}
+        {/* ── Article Body (with inline affiliate cards) ──── */}
+        <PostContent content={post.content} affiliate={post.affiliate} />
 
         {/* ── Tags ────────────────────────────────────────── */}
         {post.tags && post.tags.length > 0 && (

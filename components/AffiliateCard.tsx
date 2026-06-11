@@ -36,6 +36,7 @@ export default function AffiliateCard({
 
   return (
     <div className="
+      not-prose
       relative my-7
       rounded-2xl border border-gray-200 bg-white
       shadow-[0_2px_12px_rgba(0,0,0,0.07)]
@@ -93,7 +94,7 @@ export default function AffiliateCard({
                 className="
                   inline-flex items-center gap-1.5
                   text-sm font-semibold
-                  bg-gray-900 text-white
+                  bg-gray-900 !text-white !no-underline
                   hover:bg-gray-700 active:bg-gray-800
                   px-5 py-2.5 rounded-xl
                   shadow-sm hover:shadow
