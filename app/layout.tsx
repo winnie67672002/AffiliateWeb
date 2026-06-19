@@ -1,8 +1,11 @@
 import type { Metadata } from 'next'
+import Script from 'next/script'
 import './globals.css'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import AnalyticsTracker from '@/components/AnalyticsTracker'
 import { Analytics } from '@vercel/analytics/react'
+import { GTAG_ID } from '@/lib/gtag'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://goodpickslab.com'),
@@ -34,12 +37,26 @@ export default function RootLayout({
   return (
     <html lang="zh-TW" className="h-full">
       <body className="min-h-full flex flex-col bg-white">
-        
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />
-          <Analytics />
+        <Analytics />
+        <AnalyticsTracker />
       </body>
+
+      {/* Google Ads / gtag.js — afterInteractive so it doesn't block render */}
+      <Script
+        src={`https://www.googletagmanager.com/gtag/js?id=${GTAG_ID}`}
+        strategy="afterInteractive"
+      />
+      <Script id="gtag-init" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', '${GTAG_ID}', { send_page_view: false });
+        `}
+      </Script>
     </html>
   )
 }

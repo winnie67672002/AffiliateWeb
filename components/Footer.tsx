@@ -20,6 +20,13 @@ export default function Footer() {
               <Link href="/blog?category=生產力工具" className="hover:text-gray-900 transition-colors text-xs">生產力工具</Link>
               <Link href="/blog?category=AI工具" className="hover:text-gray-900 transition-colors text-xs">AI工具</Link>
             </div>
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">關於</span>
+              <Link href="/about" className="hover:text-gray-900 transition-colors text-xs">關於我們</Link>
+              <Link href="/contact" className="hover:text-gray-900 transition-colors text-xs">聯絡我們</Link>
+              <Link href="/privacy-policy" className="hover:text-gray-900 transition-colors text-xs">隱私權政策</Link>
+              <Link href="/terms" className="hover:text-gray-900 transition-colors text-xs">使用條款</Link>
+            </div>
           </div>
         </div>
         <div className="border-t border-gray-200 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
