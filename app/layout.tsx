@@ -35,28 +35,64 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="zh-TW" className="h-full">
-      <body className="min-h-full flex flex-col bg-white">
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
-        <Analytics />
-        <AnalyticsTracker />
-      </body>
+<html lang="zh-TW" className="h-full">
+  <body className="min-h-full flex flex-col bg-white">
 
-      {/* Google Ads / gtag.js — afterInteractive so it doesn't block render */}
-      <Script
-        src={`https://www.googletagmanager.com/gtag/js?id=${GTAG_ID}`}
-        strategy="afterInteractive"
-      />
-      <Script id="gtag-init" strategy="afterInteractive">
-        {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', '${GTAG_ID}', { send_page_view: false });
-        `}
-      </Script>
-    </html>
+    <Header />
+    <main className="flex-1">{children}</main>
+    <Footer />
+
+    <Analytics />
+    <AnalyticsTracker />
+
+    {/* GA */}
+    <Script
+      src={`https://www.googletagmanager.com/gtag/js?id=${GTAG_ID}`}
+      strategy="afterInteractive"
+    />
+
+    <Script id="gtag-init" strategy="afterInteractive">
+      {`
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '${GTAG_ID}', { send_page_view: false });
+      `}
+    </Script>
+
+    {/* WebSite Schema（只留一個） */}
+    <Script
+      id="website-schema"
+      type="application/ld+json"
+      strategy="afterInteractive"
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "選好研究所",
+          alternateName: "Good Picks Lab",
+          url: "https://goodpickslab.com",
+        }),
+      }}
+    />
+
+    {/* Organization Schema */}
+    <Script
+      id="organization-schema"
+      type="application/ld+json"
+      strategy="afterInteractive"
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "選好研究所",
+          url: "https://goodpickslab.com",
+          logo: "https://goodpickslab.com/logo.png",
+        }),
+      }}
+    />
+
+  </body>
+</html>
   )
 }

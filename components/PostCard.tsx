@@ -43,7 +43,7 @@ export default function PostCard({ post, badge, featured = false }: PostCardProp
         transition-all duration-200
         overflow-hidden
       ">
-        <Link href={`/blog/${post.slug}`} className="flex flex-col p-6 h-full">
+        <Link href={`/${post.slug}`} className="flex flex-col p-6 h-full">
           <div className="flex items-center gap-2 mb-4">
             <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${colorClass}`}>
               {post.category}
@@ -80,7 +80,7 @@ export default function PostCard({ post, badge, featured = false }: PostCardProp
       transition-all duration-200
       overflow-hidden flex flex-col
     ">
-      <Link href={`/blog/${post.slug}`} className="flex flex-col flex-1 p-5">
+      <Link href={`/${post.slug}`} className="flex flex-col flex-1 p-5">
         <div className="flex items-center gap-2 mb-3">
           <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${colorClass}`}>
             {post.category}

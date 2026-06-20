@@ -19,6 +19,12 @@ export default function Header() {
           >
             文章
           </Link>
+          <Link
+            href="/best-power-bank-iphone-2026"
+            className="text-sm font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors px-3 py-1.5 rounded-md"
+          >
+            ✦ 精選
+          </Link>
         </nav>
       </div>
     </header>
