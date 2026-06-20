@@ -3,13 +3,19 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Best Power Bank for iPhone 2026 — Top 3 Picks Tested',
+  title: 'iPhone 行動電源推薦 2026 — Top 3 實測精選',
   description:
-    'Looking for the best power bank for iPhone in 2026? We tested 12+ options. Here are the top 3 MagSafe-compatible picks for travel, daily carry, and fast charging.',
-  keywords: ['best power bank for iphone 2026', 'magsafe power bank', 'iphone portable charger', 'best portable charger iphone'],
-  openGraph: {
-    title: 'Best Power Bank for iPhone 2026 — Top 3 Picks Tested',
-    description: 'Top 3 MagSafe-compatible power banks for iPhone, tested and ranked.',
+     '正在找 iPhone 行動電源推薦？我們實測 12 款以上 MagSafe 行動電源，整理出 2026 年最值得買的 3 款：出國、日常、輕薄一次搞定。',
+   keywords: [
+    'iPhone行動電源推薦2026',
+    'MagSafe行動電源',
+    '無線充電行動電源',
+    'iPhone快充',
+    '行動電源推薦'
+  ],
+   openGraph: {
+    title: 'iPhone 行動電源推薦 2026 — Top 3 實測精選',
+    description: '2026 最值得買的 iPhone MagSafe 行動電源 Top 3 推薦',
     type: 'article',
   },
 }
@@ -19,14 +25,20 @@ export const metadata: Metadata = {
 const PRODUCTS = [
   {
     rank: 1,
-    badge: '✦ Best Overall',
+    badge: '✦ 最推薦',
     badgeColor: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200',
-    name: 'Anker MagGo Power Bank 10000',
-    tagline: 'Best MagSafe Power Bank for iPhone in 2026',
+    name: 'Anker MagGo 行動電源 10000',
+    tagline: '2026 iPhone 最佳 MagSafe 行動電源',
     description:
-      'The Anker MagGo 10000 is our top pick for most iPhone users. It snaps magnetically to your iPhone 12–16 via MagSafe, delivers 15W wireless + 20W USB-C fast charge, and packs enough juice for 2+ full iPhone charges. Slim profile fits in any pocket.',
-    pros: ['MagSafe 15W wireless', '20W USB-C PD', '10,000mAh — 2+ iPhone charges', 'Slim & lightweight (215g)', 'Pass-through charging'],
-    cons: ['No display', 'Wireless charging only on MagSafe side'],
+      'Anker MagGo 10000 是大多數 iPhone 使用者的首選。支援 MagSafe 磁吸，最高 15W 無線充電 + 20W USB-C 快充，一次可充滿 iPhone 約 2 次以上，輕薄設計方便隨身攜帶。',
+    pros: [
+      'MagSafe 15W 磁吸快充',
+      'USB-C PD 20W 快充',
+      '10000mAh 可充 2 次以上 iPhone',
+      '輕薄設計（215g）',
+      '支援邊充邊用'
+    ],
+       cons: ['沒有電量數字顯示', '無線充電僅支援磁吸區'],
     capacity: '10,000mAh',
     weight: '215g',
     maxOutput: '20W',
@@ -92,28 +104,24 @@ const COMPARISON = [
 
 const FAQS = [
   {
-    q: 'How many mAh do I need for an iPhone?',
-    a: 'For iPhone 15/16 (3,274–4,685mAh battery), a 5,000mAh power bank gives roughly 1 full charge. 10,000mAh gives 2+ charges. For travel or multi-day trips, we recommend at least 10,000mAh.',
-  },
-  {
-    q: 'Can I bring a power bank on a plane?',
-    a: 'Yes, but only in carry-on luggage — never checked bags. Most airlines allow power banks up to 100Wh (roughly 27,000mAh at 3.7V). The JV3C MAG Lite in our list is CCC-certified and compliant with airline regulations.',
-  },
-  {
-    q: 'Is MagSafe worth it for power banks?',
-    a: 'Yes, if you use iPhone 12 or later. MagSafe power banks snap on magnetically so you can keep using your phone while charging — no cable needed. Qi2 standard also guarantees 15W wireless charging, which is significantly faster than standard Qi.',
-  },
-  {
-    q: 'What is the fastest charging power bank for iPhone?',
-    a: 'For wired charging, look for USB-C Power Delivery (PD) 20W or higher. The Anker MagGo 10000 supports both 15W MagSafe wireless and 20W USB-C PD — making it the fastest dual-mode option in our list.',
-  },
-  {
-    q: 'Can I charge multiple devices at once?',
-    a: 'It depends on the model. The Anker MagGo 10000 and LaPO 8-in-1 support simultaneous charging via MagSafe + USB-C. For most users, one device at a time is sufficient, but if you travel with multiple devices, look for at least 2 output ports.',
+    q: 'iPhone 需要幾 mAh 的行動電源？',
+    a: 'iPhone 電池約 3000–4500mAh，5000mAh 可充滿 1 次，10000mAh 約可充 2 次以上，出國建議至少 10000mAh。',
   },
   {
     q: '行動電源可以帶上飛機嗎？',
-    a: '可以，但只能放隨身行李，不能託運。一般航空公司允許 100Wh（約 27,000mAh）以下的行動電源登機。JV3C MAG Lite 通過 CCC 認證，是符合規範的選擇。',
+    a: '可以，但必須隨身攜帶，不能托運。一般限制在 100Wh（約 27000mAh）以下。',
+  },
+  {
+    q: 'MagSafe 行動電源值得買嗎？',
+    a: '如果你是 iPhone 12 以上使用者非常推薦，可以磁吸邊充邊用，不用插線更方便。',
+  },
+  {
+    q: '哪一款充電最快？',
+    a: '有線充電通常最快（USB-C PD 20W 以上），Anker MagGo 同時支援無線與有線快充。',
+  },
+  {
+    q: '可以同時充多個裝置嗎？',
+    a: '部分款式支援多輸出，例如 Anker MagGo 可以同時充手機與耳機。',
   },
 ]
 
@@ -205,7 +213,7 @@ export default function BestPowerBankPage() {
         <span className="text-gray-200">/</span>
         <Link href="/blog" className="hover:text-gray-700 transition-colors">文章</Link>
         <span className="text-gray-200">/</span>
-        <span className="text-gray-500 truncate">Best Power Bank for iPhone 2026</span>
+        <span className="text-gray-500 truncate">2026 iPhone 行動電源推薦 </span>
       </nav>
 
       {/* ── HERO ───────────────────────────────────────────── */}
@@ -218,7 +226,7 @@ export default function BestPowerBankPage() {
         </div>
 
         <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 leading-tight tracking-tight mb-5">
-          Best Power Bank for iPhone 2026<br />
+          2026 iPhone 行動電源推薦 <br />
           <span className="text-gray-400 font-bold">Top 3 實測推薦</span>
         </h1>
 
