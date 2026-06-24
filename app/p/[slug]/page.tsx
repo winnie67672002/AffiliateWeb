@@ -25,7 +25,8 @@ export async function generateMetadata({
       type: 'article',
     },
     alternates: {
-      canonical: `/p/${page.slug}`,
+      // 若 data 層設定了 canonicalOverride，優先指向該 URL（避免與同內容的靜態頁重複）
+      canonical: page.canonicalOverride ?? `/p/${page.slug}`,
     },
   }
 }

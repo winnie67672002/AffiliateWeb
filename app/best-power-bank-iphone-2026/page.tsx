@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
+import AffiliateButton from '@/components/AffiliateButton'
 
 export const metadata: Metadata = {
   title: 'iPhone 行動電源推薦 2026｜PTT/Dcard 熱門 MagSafe 磁吸行動電源 Top 3 評比',
@@ -20,6 +21,9 @@ export const metadata: Metadata = {
     description:
       '實測 12+ 款 iPhone 行動電源，整理 MagSafe / 快充 / 出國旅行最佳選擇',
     type: 'article',
+  },
+  alternates: {
+    canonical: '/best-power-bank-iphone-2026',
   },
 }
 
@@ -179,34 +183,6 @@ const BUYING_GUIDE = [
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
-function CtaButton({
-  href,
-  children,
-  className = '',
-}: {
-  href: string
-  children: React.ReactNode
-  className?: string
-}) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="nofollow sponsored noopener noreferrer"
-      className={`
-        inline-flex items-center justify-center gap-2
-        bg-gray-900 text-white font-semibold text-sm
-        px-6 py-3 rounded-xl
-        shadow-sm hover:shadow hover:bg-gray-700 active:bg-gray-800
-        transition-all duration-150 no-underline
-        ${className}
-      `}
-    >
-      {children}
-    </a>
-  )
-}
-
 function ProConList({ items, type }: { items: string[]; type: 'pro' | 'con' }) {
   return (
     <ul className="space-y-1.5">
@@ -303,7 +279,7 @@ export default function BestPowerBankPage() {
 
         {/* Hero CTA */}
         <div className="flex flex-wrap gap-3">
-          <CtaButton href={PRODUCTS[0].href}>查看 #{1} 推薦 →</CtaButton>
+          <AffiliateButton href={PRODUCTS[0].href} productName={PRODUCTS[0].name}>查看 #1 推薦 →</AffiliateButton>
           <a
             href="#comparison"
             className="
@@ -409,12 +385,13 @@ export default function BestPowerBankPage() {
 
                 {/* CTA */}
                 <div className="flex flex-wrap items-center gap-3">
-                  <CtaButton
+                  <AffiliateButton
                     href={product.href}
+                    productName={product.name}
                     className="flex-1 sm:flex-none"
                   >
                     {product.ctaText}
-                  </CtaButton>
+                  </AffiliateButton>
                   <span className="text-sm font-semibold text-gray-700">
                     {product.price}
                   </span>
@@ -497,14 +474,13 @@ export default function BestPowerBankPage() {
                   </td>
                   {PRODUCTS.map((p) => (
                     <td key={p.rank} className="px-4 py-3 text-center">
-                      <a
+                      <AffiliateButton
                         href={p.href}
-                        target="_blank"
-                        rel="nofollow sponsored noopener noreferrer"
-                        className="inline-flex items-center justify-center text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-lg hover:bg-gray-700 transition-colors no-underline"
+                        productName={p.name}
+                        className="!text-xs !px-3 !py-1.5 !rounded-lg"
                       >
                         查看價格
-                      </a>
+                      </AffiliateButton>
                     </td>
                   ))}
                 </tr>
@@ -621,9 +597,9 @@ export default function BestPowerBankPage() {
           最適合大多數 iPhone 用戶——MagSafe 15W 無線 + 20W 有線快充，10,000mAh
           撐兩天沒問題。
         </p>
-        <CtaButton href={PRODUCTS[0].href} className="mx-auto">
+        <AffiliateButton href={PRODUCTS[0].href} productName={PRODUCTS[0].name} className="mx-auto">
           查看 Anker MagGo 最新價格 →
-        </CtaButton>
+        </AffiliateButton>
         <p className="text-xs text-amber-600 mt-3">
           * 此為聯盟行銷連結，不影響你的購買價格
         </p>
@@ -681,9 +657,9 @@ export default function BestPowerBankPage() {
         </h3>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           {PRODUCTS.map((p) => (
-            <CtaButton key={p.rank} href={p.href} className="w-full sm:w-auto">
+            <AffiliateButton key={p.rank} href={p.href} productName={p.name} className="w-full sm:w-auto">
               #{p.rank} {p.name.split(" ").slice(0, 2).join(" ")} →
-            </CtaButton>
+            </AffiliateButton>
           ))}
         </div>
         <p className="text-xs text-gray-400 mt-4">

@@ -1,36 +1,9 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import type { LandingPage, LandingProduct } from '@/lib/landingPages'
+import AffiliateButton from '@/components/AffiliateButton'
 
 // ─── Sub-components (server-safe) ────────────────────────────────────────────
-
-function AffiliateButton({
-  href,
-  children,
-  className = '',
-}: {
-  href: string
-  children: React.ReactNode
-  className?: string
-}) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="nofollow sponsored noopener noreferrer"
-      className={`
-        inline-flex items-center justify-center gap-2
-        bg-gray-900 text-white font-semibold text-sm
-        px-6 py-3 rounded-xl no-underline
-        shadow-sm hover:shadow hover:bg-gray-700 active:bg-gray-800
-        transition-all duration-150
-        ${className}
-      `}
-    >
-      {children}
-    </a>
-  )
-}
 
 function ProConList({ items, type }: { items: string[]; type: 'pro' | 'con' }) {
   return (
@@ -116,7 +89,7 @@ function ProductCard({ product }: { product: LandingProduct }) {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <AffiliateButton href={product.href} className="flex-1 sm:flex-none">
+          <AffiliateButton href={product.href} productName={product.name} className="flex-1 sm:flex-none">
             {product.ctaText}
           </AffiliateButton>
           <span className="text-sm font-semibold text-gray-700">{product.price}</span>
@@ -179,7 +152,7 @@ export default function LandingPageTemplate({ page }: { page: LandingPage }) {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <AffiliateButton href={products[0].href}>
+          <AffiliateButton href={products[0].href} productName={products[0].name}>
             查看 #1 推薦 →
           </AffiliateButton>
           <a
@@ -259,14 +232,13 @@ export default function LandingPageTemplate({ page }: { page: LandingPage }) {
                   <td className="px-4 py-3 text-xs font-medium text-gray-600 uppercase tracking-wide">購買</td>
                   {products.map((p) => (
                     <td key={p.rank} className="px-4 py-3 text-center">
-                      <a
+                      <AffiliateButton
                         href={p.href}
-                        target="_blank"
-                        rel="nofollow sponsored noopener noreferrer"
-                        className="inline-flex items-center justify-center text-xs font-semibold bg-gray-900 text-white px-3 py-1.5 rounded-lg hover:bg-gray-700 transition-colors no-underline"
+                        productName={p.name}
+                        className="!text-xs !px-3 !py-1.5 !rounded-lg"
                       >
                         查看價格
-                      </a>
+                      </AffiliateButton>
                     </td>
                   ))}
                 </tr>
@@ -312,14 +284,13 @@ export default function LandingPageTemplate({ page }: { page: LandingPage }) {
                   <span className="text-gray-400 text-xs">需求：</span>
                   <span className="text-white text-sm font-medium ml-1">{item.use}</span>
                 </div>
-                <a
+                <AffiliateButton
                   href={item.href}
-                  target="_blank"
-                  rel="nofollow sponsored noopener noreferrer"
-                  className="shrink-0 text-xs font-semibold text-gray-900 bg-white px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors no-underline"
+                  productName={item.pick}
+                  className="!bg-white !text-gray-900 !text-xs !px-3 !py-1.5 !rounded-lg hover:!bg-gray-100 shrink-0"
                 >
                   {item.pick} →
-                </a>
+                </AffiliateButton>
               </div>
             ))}
           </div>
@@ -331,7 +302,7 @@ export default function LandingPageTemplate({ page }: { page: LandingPage }) {
         <p className="text-xs font-semibold text-amber-700 uppercase tracking-widest mb-2">{midCta.label}</p>
         <h3 className="text-xl font-extrabold text-gray-900 mb-2">{midCta.productName}</h3>
         <p className="text-sm text-gray-600 mb-5 max-w-md mx-auto">{midCta.body}</p>
-        <AffiliateButton href={midCta.href} className="mx-auto">
+        <AffiliateButton href={midCta.href} productName={midCta.productName} className="mx-auto">
           {midCta.ctaText}
         </AffiliateButton>
         <p className="text-xs text-amber-600 mt-3">* 此為聯盟行銷連結，不影響你的購買價格</p>
@@ -365,7 +336,7 @@ export default function LandingPageTemplate({ page }: { page: LandingPage }) {
         <h3 className="text-2xl font-extrabold text-gray-900 mb-4">選你最需要的那一款</h3>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           {products.map((p) => (
-            <AffiliateButton key={p.rank} href={p.href} className="w-full sm:w-auto">
+            <AffiliateButton key={p.rank} href={p.href} productName={p.name} className="w-full sm:w-auto">
               #{p.rank} {p.name.split(' ').slice(0, 2).join(' ')} →
             </AffiliateButton>
           ))}

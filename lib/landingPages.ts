@@ -57,6 +57,13 @@ export interface LandingPage {
   /** meta description */
   description: string
   keywords: string[]
+  /**
+   * Override the canonical URL for this page.
+   * Use when a separate, richer static page exists for the same content
+   * and should be treated as the primary URL by Google.
+   * e.g. '/best-power-bank-iphone-2026'
+   */
+  canonicalOverride?: string
   /** Hero category chip */
   category: string
   updatedLabel: string
