@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import {  getAllPosts } from '@/lib/posts'
+import {  getAllSlugs,getAllPosts } from '@/lib/posts'
 import { getAllLandingPageSlugs } from '@/content/landing'
 
 const BASE_URL = 'https://goodpickslab.com'
@@ -34,12 +34,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // ── Blog 文章（/[slug]）──────────────────────────────────
   const posts = getAllPosts()
-  const blogPages: MetadataRoute.Sitemap = posts.map((post) => ({
-    url: `${BASE_URL}/${post.slug}`,
-    lastModified: new Date(post.date),
-    changeFrequency: 'monthly' as const,
-    priority: 0.7,
-  }))
+  const blogPages: MetadataRoute.Sitemap = posts.map((post) => {
+    const d = post.date ? new Date(post.date) : null
+    return {
+      url: `${BASE_URL}/${post.slug}`,
+      lastModified: d && !isNaN(d.getTime()) ? d : now,
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    }
+  })
 
   return [...staticPages, ...landingPages, ...blogPages]
 }
