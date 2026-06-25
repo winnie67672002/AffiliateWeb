@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import {  getAllSlugs,getAllPosts } from '@/lib/posts'
+import {  getAllPosts } from '@/lib/posts'
 import { getAllLandingPageSlugs } from '@/content/landing'
 
 const BASE_URL = 'https://goodpickslab.com'
