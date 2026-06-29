@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: '瀏覽 Good Picks Lab 所有好物推薦與產品評測文章。',
 }
 
-const CATEGORIES = ['3C產品', '生產力工具', '居家用品', '辦公設備', 'AI工具']
+const CATEGORIES = ['3C產品', '生產力工具', '生活用品推薦', '辦公設備', 'AI工具']
 
 export default async function BlogPage({
   searchParams,

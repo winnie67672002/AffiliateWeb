@@ -12,7 +12,7 @@ interface PostCardProps {
 const CATEGORY_COLORS: Record<string, string> = {
   '3C產品':   'bg-blue-50   text-blue-600   ring-1 ring-blue-100',
   '生產力工具': 'bg-violet-50 text-violet-600 ring-1 ring-violet-100',
-  '居家用品':  'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100',
+  '生活用品推薦':  'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-100',
   '辦公設備':  'bg-amber-50  text-amber-600  ring-1 ring-amber-100',
   'AI工具':   'bg-rose-50   text-rose-600   ring-1 ring-rose-100',
 }

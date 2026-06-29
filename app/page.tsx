@@ -5,7 +5,7 @@ import PostCard from '@/components/PostCard'
 const CATEGORIES = [
   { label: '3C產品',   icon: '💻', color: 'hover:border-blue-200   hover:bg-blue-50/50'   },
   { label: '生產力工具', icon: '⚡', color: 'hover:border-violet-200 hover:bg-violet-50/50' },
-  { label: '居家用品',  icon: '🏠', color: 'hover:border-emerald-200 hover:bg-emerald-50/50' },
+  { label: '生活用品推薦',  icon: '🏠', color: 'hover:border-emerald-200 hover:bg-emerald-50/50' },
   { label: '辦公設備',  icon: '🖥️', color: 'hover:border-amber-200  hover:bg-amber-50/50'  },
   { label: 'AI工具',   icon: '🤖', color: 'hover:border-rose-200   hover:bg-rose-50/50'   },
 ]

@@ -17,6 +17,7 @@ export default function Footer() {
             <div className="flex flex-col gap-2">
               <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">分類</span>
               <Link href="/blog?category=3C產品" className="hover:text-gray-900 transition-colors text-xs">3C產品</Link>
+                  <Link href="/blog?category=生活用品推薦" className="hover:text-gray-900 transition-colors text-xs">生活用品推薦</Link>
               <Link href="/blog?category=生產力工具" className="hover:text-gray-900 transition-colors text-xs">生產力工具</Link>
               <Link href="/blog?category=AI工具" className="hover:text-gray-900 transition-colors text-xs">AI工具</Link>
             </div>
