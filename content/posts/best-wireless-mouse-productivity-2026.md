@@ -45,6 +45,7 @@ affiliate:
     badge: "CP值首選"
     price: "約 NT$590–890"
     image: "/images/pebble-m350s.jpg"
+published: true
 ---
 
 # 2026 無線滑鼠推薦｜5 款完整比較（上班族、設計師、工程師、商務族）

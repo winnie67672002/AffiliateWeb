@@ -22,6 +22,7 @@ affiliate:
     badge: "辦公首選"
     price: "約 NT$3,500"
     image: "/images/Logitech_MX_Keys.jpg"
+published: false
 ---
 
 ## 前言
