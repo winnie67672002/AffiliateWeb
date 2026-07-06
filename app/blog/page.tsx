@@ -2,10 +2,21 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getAllPosts } from '@/lib/posts'
 import PostCard from '@/components/PostCard'
+import BreadcrumbSchema from '@/components/schema/BreadcrumbSchema'
 
 export const metadata: Metadata = {
   title: '所有文章',
-  description: '瀏覽 Good Picks Lab 所有好物推薦與產品評測文章。',
+  description: '瀏覽 Good Picks Lab 所有好物推薦與產品評測文章，涵蓋 3C、生產力工具、生活用品與 AI 工具評測。',
+  keywords: ['好物推薦', '產品評測', '3C推薦', '生活用品推薦'],
+  alternates: {
+    // ?category= 只是同一份內容的篩選檢視，canonical 統一指回 /blog，避免參數頁被視為重複內容
+    canonical: '/blog',
+  },
+  openGraph: {
+    title: '所有文章 | Good Picks Lab',
+    description: '瀏覽 Good Picks Lab 所有好物推薦與產品評測文章。',
+    type: 'website',
+  },
 }
 
 const CATEGORIES = ['3C產品', '生產力工具', '生活用品推薦', '辦公設備', 'AI工具']
@@ -21,6 +32,8 @@ export default async function BlogPage({
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
+
+      <BreadcrumbSchema items={[{ name: '首頁', url: '/' }, { name: '文章', url: '/blog' }]} />
 
       {/* Page Header */}
       <div className="mb-8">

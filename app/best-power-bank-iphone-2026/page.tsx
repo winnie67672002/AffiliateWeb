@@ -2,6 +2,9 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import AffiliateButton from '@/components/AffiliateButton'
+import BreadcrumbSchema from '@/components/schema/BreadcrumbSchema'
+import FaqSchema from '@/components/schema/FaqSchema'
+import ProductListSchema from '@/components/schema/ProductListSchema'
 
 export const metadata: Metadata = {
   title: 'iPhone 行動電源推薦 2026｜PTT/Dcard 熱門 MagSafe 磁吸行動電源 Top 3 評比',
@@ -21,6 +24,13 @@ export const metadata: Metadata = {
     description:
       '實測 12+ 款 iPhone 行動電源，整理 MagSafe / 快充 / 出國旅行最佳選擇',
     type: 'article',
+    images: [{ url: '/images/anker-maggo.jpg' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'iPhone 行動電源推薦 2026｜PTT/Dcard 熱門 Top 3',
+    description: '實測 12+ 款 iPhone 行動電源，整理 MagSafe / 快充 / 出國旅行最佳選擇',
+    images: ['/images/anker-maggo.jpg'],
   },
   alternates: {
     canonical: '/best-power-bank-iphone-2026',
@@ -211,6 +221,24 @@ function RankBadge({ rank }: { rank: number }) {
 export default function BestPowerBankPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-12">
+      <BreadcrumbSchema
+        items={[
+          { name: '首頁', url: '/' },
+          { name: '文章', url: '/blog' },
+          { name: '2026 iPhone 行動電源推薦', url: '/best-power-bank-iphone-2026' },
+        ]}
+      />
+      <FaqSchema faqs={FAQS} />
+      <ProductListSchema
+        products={PRODUCTS.map((p) => ({
+          name: p.name,
+          description: p.description,
+          image: p.image,
+          url: p.href,
+          price: p.price,
+          position: p.rank,
+        }))}
+      />
       {/* ── Breadcrumb ─────────────────────────────────────── */}
       <nav className="flex items-center gap-1.5 text-sm text-gray-400 mb-8">
         <Link href="/" className="hover:text-gray-700 transition-colors">

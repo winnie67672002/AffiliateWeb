@@ -20,6 +20,12 @@ export default function Header() {
             文章
           </Link>
           <Link
+            href="/3c"
+            className="text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors px-3 py-1.5 rounded-md hidden sm:inline-block"
+          >
+            3C 專區
+          </Link>
+          <Link
             href="/best-power-bank-iphone-2026"
             className="text-sm font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors px-3 py-1.5 rounded-md"
           >

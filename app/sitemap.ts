@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
 import {  getAllPosts } from '@/lib/posts'
 import { getAllLandingPageSlugs } from '@/content/landing'
+import { MOUSE_CLUSTER_PAGES } from '@/lib/mouseCluster'
 
 const BASE_URL = 'https://goodpickslab.com'
 
@@ -13,6 +14,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/blog`,     lastModified: now, changeFrequency: 'weekly',  priority: 0.8 },
     { url: `${BASE_URL}/about`,    lastModified: now, changeFrequency: 'monthly', priority: 0.4 },
     { url: `${BASE_URL}/contact`,  lastModified: now, changeFrequency: 'monthly', priority: 0.3 },
+    { url: `${BASE_URL}/privacy-policy`, lastModified: now, changeFrequency: 'yearly', priority: 0.2 },
+    { url: `${BASE_URL}/terms`,    lastModified: now, changeFrequency: 'yearly', priority: 0.2 },
     // 獨立靜態 landing page（行動電源推薦，主版本）
     {
       url: `${BASE_URL}/best-power-bank-iphone-2026`,
@@ -20,7 +23,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.9,
     },
+    // ── 3C Topic Cluster：hub page ──────────────────────────
+    { url: `${BASE_URL}/3c`,    lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${BASE_URL}/mouse`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
   ]
+
+  // ── 滑鼠 Topic Cluster 子頁（/mouse/[slug]）────────────────
+  const mouseClusterPages: MetadataRoute.Sitemap = MOUSE_CLUSTER_PAGES.map((p) => ({
+    url: `${BASE_URL}/mouse/${p.slug}`,
+    lastModified: now,
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }))
 
   // ── 動態 landing pages（/p/[slug]）────────────────────────
   // best-power-bank-iphone-2026 已有靜態主版本，canonical 指向它
@@ -44,5 +58,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }
   })
 
-  return [...staticPages, ...landingPages, ...blogPages]
+  return [...staticPages, ...mouseClusterPages, ...landingPages, ...blogPages]
 }

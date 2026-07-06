@@ -1,14 +1,25 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import BreadcrumbSchema from '@/components/schema/BreadcrumbSchema'
 
 export const metadata: Metadata = {
   title: 'Contact',
   description: '有任何問題、合作洽詢或內容建議，歡迎透過 email 聯絡 Good Picks Lab。',
+  alternates: {
+    canonical: '/contact',
+  },
+  openGraph: {
+    title: 'Contact | Good Picks Lab',
+    description: '有任何問題、合作洽詢或內容建議，歡迎透過 email 聯絡 Good Picks Lab。',
+    type: 'website',
+  },
 }
 
 export default function ContactPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-14">
+
+      <BreadcrumbSchema items={[{ name: '首頁', url: '/' }, { name: '聯絡我們', url: '/contact' }]} />
 
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-sm text-gray-400 mb-10">

@@ -1,10 +1,20 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import BreadcrumbSchema from '@/components/schema/BreadcrumbSchema'
 
 export const metadata: Metadata = {
   title: 'About',
   description:
     'Good Picks Lab 是一個專注於產品研究與真實評測的內容部落格，幫助你找到值得購買的商品。',
+  alternates: {
+    canonical: '/about',
+  },
+  openGraph: {
+    title: 'About | Good Picks Lab',
+    description:
+      'Good Picks Lab 是一個專注於產品研究與真實評測的內容部落格，幫助你找到值得購買的商品。',
+    type: 'website',
+  },
 }
 
 const PILLARS = [
@@ -25,6 +35,8 @@ const PILLARS = [
 export default function AboutPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-14">
+
+      <BreadcrumbSchema items={[{ name: '首頁', url: '/' }, { name: '關於我們', url: '/about' }]} />
 
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-sm text-gray-400 mb-10">

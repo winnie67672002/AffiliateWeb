@@ -2,6 +2,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import type { LandingPage, LandingProduct } from '@/lib/landingPages'
 import AffiliateButton from '@/components/AffiliateButton'
+import BreadcrumbSchema from '@/components/schema/BreadcrumbSchema'
+import FaqSchema from '@/components/schema/FaqSchema'
+import ProductListSchema from '@/components/schema/ProductListSchema'
 
 // ─── Sub-components (server-safe) ────────────────────────────────────────────
 
@@ -106,6 +109,25 @@ export default function LandingPageTemplate({ page }: { page: LandingPage }) {
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-12">
+
+      <BreadcrumbSchema
+        items={[
+          { name: '首頁', url: '/' },
+          { name: '文章', url: '/blog' },
+          { name: page.heroTitle, url: page.canonicalOverride ?? `/p/${page.slug}` },
+        ]}
+      />
+      <FaqSchema faqs={faqs} />
+      <ProductListSchema
+        products={products.map((p) => ({
+          name: p.name,
+          description: p.description,
+          image: p.image,
+          url: p.href,
+          price: p.price,
+          position: p.rank,
+        }))}
+      />
 
       {/* ── Breadcrumb ─────────────────────────────────────── */}
       <nav className="flex items-center gap-1.5 text-sm text-gray-400 mb-8">

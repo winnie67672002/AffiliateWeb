@@ -15,6 +15,21 @@ export interface AffiliateItem {
   image?: string
 }
 
+export interface FaqItem {
+  q: string
+  a: string
+}
+
+export interface HowToStepItem {
+  name: string
+  text: string
+}
+
+export interface ComparisonTableSpec {
+  columns: { label: string; key: string }[]
+  rows: { label: string; values: Record<string, string> }[]
+}
+
 export interface PostFrontmatter {
   title: string
   description: string
@@ -25,6 +40,22 @@ export interface PostFrontmatter {
   affiliate?: AffiliateItem[]
   /** 是否顯示在網站上，預設為 true（未設定時視為已發佈） */
   published?: boolean
+  /** SEO：長尾關鍵字，用於 <meta name="keywords"> */
+  keywords?: string[]
+  /** 若此文章與其他頁面（如 /p/[slug] landing page）內容重複，覆寫 canonical 指向的主版本 */
+  canonical?: string
+  /** FAQ（用於 FAQPage schema，須與畫面上顯示的內容一致） */
+  faqs?: FaqItem[]
+  /** true 表示文章內文已經用 Markdown 寫了對應的 FAQ 區塊，頁面不需要再額外渲染一次 */
+  faqRenderedInBody?: boolean
+  /** HowTo 步驟（用於購買指南／教學類文章的 HowTo schema） */
+  howTo?: {
+    name: string
+    description?: string
+    steps: HowToStepItem[]
+  }
+  /** 比較表（用於文章內文尚未有 markdown table 的多產品比較文章） */
+  comparisonTable?: ComparisonTableSpec
 }
 
 export interface PostMeta extends PostFrontmatter {

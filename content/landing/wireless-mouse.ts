@@ -3,6 +3,9 @@ import type { LandingPage } from '@/lib/landingPages'
 const wirelessMousePages: LandingPage[] = [
   {
     slug: 'best-wireless-mouse-productivity-2026',
+    // 同 slug 的完整版文章已存在於 /best-wireless-mouse-productivity-2026（5 款比較，內容更完整）
+    // 讓這個動態模板頁的 canonical 指向該文章，避免與 /p/best-wireless-mouse-productivity-2026 重複內容互打
+    canonicalOverride: '/best-wireless-mouse-productivity-2026',
     title: '無線滑鼠推薦2026｜生產力首選 Top 3 實測比較（上班/設計/工程師）',
     description:
       '2026最新無線滑鼠推薦：測試20款以上，整理出最適合上班族、設計師與工程師的 Top 3。MX Master 3S 人體工學、多設備切換、長時間使用全比較。',

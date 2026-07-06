@@ -1,9 +1,17 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import BreadcrumbSchema from '@/components/schema/BreadcrumbSchema'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
   description: 'Good Picks Lab 隱私權政策——說明我們如何收集、使用及保護你的資料。',
+  alternates: {
+    canonical: '/privacy-policy',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 }
 
 const LAST_UPDATED = '2026-06-12'
@@ -11,6 +19,8 @@ const LAST_UPDATED = '2026-06-12'
 export default function PrivacyPolicyPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-14">
+
+      <BreadcrumbSchema items={[{ name: '首頁', url: '/' }, { name: '隱私權政策', url: '/privacy-policy' }]} />
 
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-sm text-gray-400 mb-10">

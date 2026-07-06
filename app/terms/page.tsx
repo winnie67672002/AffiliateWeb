@@ -1,9 +1,17 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import BreadcrumbSchema from '@/components/schema/BreadcrumbSchema'
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
   description: 'Good Picks Lab 使用條款——使用本站前請詳閱相關規定與免責聲明。',
+  alternates: {
+    canonical: '/terms',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 }
 
 const LAST_UPDATED = '2026-06-12'
@@ -11,6 +19,8 @@ const LAST_UPDATED = '2026-06-12'
 export default function TermsPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-14">
+
+      <BreadcrumbSchema items={[{ name: '首頁', url: '/' }, { name: '使用條款', url: '/terms' }]} />
 
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-sm text-gray-400 mb-10">

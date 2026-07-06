@@ -4,6 +4,11 @@ import Script from 'next/script'
 import { notFound } from 'next/navigation'
 import { getPostBySlug, getAllSlugs, getRelatedPosts } from '@/lib/posts'
 import PostContent from '@/components/PostContent'
+import FaqBlock from '@/components/FaqBlock'
+import ComparisonTable from '@/components/ComparisonTable'
+import BreadcrumbSchema from '@/components/schema/BreadcrumbSchema'
+import FaqSchema from '@/components/schema/FaqSchema'
+import HowToSchema from '@/components/schema/HowToSchema'
 
 export async function generateStaticParams() {
   return getAllSlugs().map((slug) => ({ slug }))
@@ -17,14 +22,26 @@ export async function generateMetadata({
   const { slug } = await params
   const post = await getPostBySlug(slug)
   if (!post) return {}
+  const ogImage = post.coverImage ?? post.affiliate?.[0]?.image
   return {
     title: post.title,
     description: post.description,
+    keywords: post.keywords,
     openGraph: {
       title: post.title,
       description: post.description,
       type: 'article',
       publishedTime: post.date,
+      images: ogImage ? [{ url: ogImage }] : undefined,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.description,
+      images: ogImage ? [ogImage] : undefined,
+    },
+    alternates: {
+      canonical: post.canonical ?? `/${post.slug}`,
     },
   }
 }
@@ -86,6 +103,24 @@ export default async function PostPage({
         }}
       />
 
+      <BreadcrumbSchema
+        items={[
+          { name: '首頁', url: '/' },
+          { name: '文章', url: '/blog' },
+          { name: post.title, url: `/${post.slug}` },
+        ]}
+      />
+
+      {post.faqs && post.faqs.length > 0 && <FaqSchema faqs={post.faqs} />}
+
+      {post.howTo && (
+        <HowToSchema
+          name={post.howTo.name}
+          description={post.howTo.description}
+          steps={post.howTo.steps}
+        />
+      )}
+
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-sm text-gray-400 mb-8">
         <Link href="/" className="hover:text-gray-700 transition-colors">首頁</Link>
@@ -116,6 +151,16 @@ export default async function PostPage({
 
         {/* ── Article Body (with inline affiliate cards) ──── */}
         <PostContent content={post.content} affiliate={post.affiliate} />
+
+        {/* ── Comparison Table (only when the body doesn't already have one) ── */}
+        {post.comparisonTable && (
+          <ComparisonTable table={post.comparisonTable} title="規格比較" />
+        )}
+
+        {/* ── FAQ (only when not already written inline in the Markdown body) ── */}
+        {post.faqs && post.faqs.length > 0 && !post.faqRenderedInBody && (
+          <FaqBlock faqs={post.faqs} />
+        )}
 
         {/* ── Tags ────────────────────────────────────────── */}
         {post.tags && post.tags.length > 0 && (
