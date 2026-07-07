@@ -1,6 +1,5 @@
 import type { MetadataRoute } from 'next'
 import {  getAllPosts } from '@/lib/posts'
-import { getAllLandingPageSlugs } from '@/content/landing'
 import { MOUSE_CLUSTER_PAGES } from '@/lib/mouseCluster'
 
 const BASE_URL = 'https://goodpickslab.com'
@@ -36,15 +35,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }))
 
-  // ── 動態 landing pages（/p/[slug]）────────────────────────
-  // best-power-bank-iphone-2026 已有靜態主版本，canonical 指向它
-  // 仍然列入 sitemap 讓 Google 發現 canonical 關係
-  const landingPages: MetadataRoute.Sitemap = getAllLandingPageSlugs().map((slug) => ({
-    url: `${BASE_URL}/p/${slug}`,
-    lastModified: now,
-    changeFrequency: 'weekly' as const,
-    priority: 0.85,
-  }))
+  // 注意：/p/[slug] 這個路由已經完全移除（改成 301/410 的 route handler），
+  // 這裡不再輸出任何 /p/ 網址。原本兩個有實際內容的 slug
+  // （best-power-bank-iphone-2026、best-wireless-mouse-productivity-2026）
+  // 已經分別包含在上面的 staticPages 和下面的 blogPages 裡，canonical URL 不會漏掉。
 
   // ── Blog 文章（/[slug]）──────────────────────────────────
   const posts = getAllPosts()
@@ -58,5 +52,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }
   })
 
-  return [...staticPages, ...mouseClusterPages, ...landingPages, ...blogPages]
+  return [...staticPages, ...mouseClusterPages, ...blogPages]
 }

@@ -323,5 +323,5 @@ KeepCup 的差異集中在**材質**這一件事上。
 ## 延伸閱讀
 
 - [空氣炸鍋推薦2026｜小家庭必看比較](/air-fryer-buying-guide-2026)
-- [不鏽鋼湯鍋推薦2026｜小家庭必看比較](/stainless-cookware-buying-guide-2026)
+- [3C 生產力設備專區](/3c)
 - [所有生活用品推薦文章](/blog?category=生活用品推薦)

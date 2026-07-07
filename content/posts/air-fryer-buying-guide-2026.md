@@ -342,7 +342,6 @@ published: true
 
 ## 延伸閱讀
 
-- [不鏽鋼湯鍋推薦2026｜小家庭必看比較](/stainless-cookware-buying-guide-2026)
 - [環保杯推薦2026｜手搖飲愛好者必看比較](/eco-friendly-cup-buying-guide-2026)
 - [3C 生產力設備專區](/3c)
 - [所有生活用品推薦文章](/blog?category=生活用品推薦)

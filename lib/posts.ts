@@ -42,7 +42,7 @@ export interface PostFrontmatter {
   published?: boolean
   /** SEO：長尾關鍵字，用於 <meta name="keywords"> */
   keywords?: string[]
-  /** 若此文章與其他頁面（如 /p/[slug] landing page）內容重複，覆寫 canonical 指向的主版本 */
+  /** 若此文章與其他頁面內容重複，覆寫 canonical 指向的主版本 */
   canonical?: string
   /** FAQ（用於 FAQPage schema，須與畫面上顯示的內容一致） */
   faqs?: FaqItem[]

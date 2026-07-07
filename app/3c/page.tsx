@@ -26,13 +26,6 @@ const LIVE_CATEGORIES = [
     cta: '進入滑鼠專區 →',
   },
   {
-    icon: '⌨️',
-    title: '鍵盤',
-    desc: '機械鍵盤軸體、配列與預算怎麼選，從入門到進階的完整拆解。',
-    href: '/mechanical-keyboard-guide',
-    cta: '閱讀鍵盤選購指南 →',
-  },
-  {
     icon: '🔋',
     title: '行動電源',
     desc: 'MagSafe 磁吸、快充、飛機攜帶規範一次整理，實測 12+ 款 iPhone 行動電源。',
@@ -41,7 +34,9 @@ const LIVE_CATEGORIES = [
   },
 ]
 
-const PLANNED_CATEGORIES = ['USB Hub', '螢幕', '筆電配件', '人體工學周邊', '辦公桌設備']
+// 鍵盤選購指南（mechanical-keyboard-guide）文章目前 published: false，還沒上線，
+// 在正式發布前先歸類到「規劃中」，避免 hub 頁連到 404。發布後把它移回 LIVE_CATEGORIES 即可。
+const PLANNED_CATEGORIES = ['鍵盤', 'USB Hub', '螢幕', '筆電配件', '人體工學周邊', '辦公桌設備']
 
 export default function ThreeCHubPage() {
   return (
