@@ -9,6 +9,7 @@ import ComparisonTable from '@/components/ComparisonTable'
 import BreadcrumbSchema from '@/components/schema/BreadcrumbSchema'
 import FaqSchema from '@/components/schema/FaqSchema'
 import HowToSchema from '@/components/schema/HowToSchema'
+import ProductListSchema from '@/components/schema/ProductListSchema'
 
 export async function generateStaticParams() {
   return getAllSlugs().map((slug) => ({ slug }))
@@ -76,7 +77,12 @@ export default async function PostPage({
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-12">
 
-      {/* Schema.org */}
+      {/* Schema.org — Article。
+          注意：這裡刻意不放 mainEntity: Product/Offer。本站不是這些商品的賣家，
+          没有即時價格/庫存資料，也没有真實評分，塞 Offer/aggregateRating 會被
+          Google 當成 Merchant listing / Product snippet 來驗證，資料不完整就會在
+          Search Console 出現「Product snippets / Merchant listings：N 個項目無效」。
+          真的想讓 Google 知道這篇文章提到哪些商品，用下面不含 Offer 的 ProductListSchema。 */}
       <Script
         id="article-schema"
         type="application/ld+json"
@@ -88,20 +94,21 @@ export default async function PostPage({
             description: post.description,
             datePublished: post.date,
             author: { '@type': 'Organization', name: 'Good Picks Lab' },
-            mainEntity: post.affiliate?.map((item) => ({
-              '@type': 'Product',
-              name: item.name,
-              description: item.description,
-              offers: {
-                '@type': 'Offer',
-                url: item.href,
-                price: item.price ?? '0',
-                priceCurrency: 'TWD',
-              },
-            })),
           }),
         }}
       />
+
+      {post.affiliate && post.affiliate.length > 0 && (
+        <ProductListSchema
+          products={post.affiliate.map((item, i) => ({
+            name: item.name,
+            description: item.description,
+            image: item.image,
+            url: item.href,
+            position: i + 1,
+          }))}
+        />
+      )}
 
       <BreadcrumbSchema
         items={[

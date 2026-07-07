@@ -2,12 +2,36 @@ import Link from 'next/link'
 import { getAllPosts } from '@/lib/posts'
 import PostCard from '@/components/PostCard'
 
+// 注意：只列出目前「已發布至少一篇文章」的分類。
+// 生產力工具／辦公設備／AI工具目前底下全是草稿（published: false），
+// 在那些分類真正有文章上線前，不放進這裡，避免導去空的分類頁。
 const CATEGORIES = [
   { label: '3C產品',   icon: '💻', color: 'hover:border-blue-200   hover:bg-blue-50/50'   },
-  { label: '生產力工具', icon: '⚡', color: 'hover:border-violet-200 hover:bg-violet-50/50' },
   { label: '生活用品推薦',  icon: '🏠', color: 'hover:border-emerald-200 hover:bg-emerald-50/50' },
-  { label: '辦公設備',  icon: '🖥️', color: 'hover:border-amber-200  hover:bg-amber-50/50'  },
-  { label: 'AI工具',   icon: '🤖', color: 'hover:border-rose-200   hover:bg-rose-50/50'   },
+]
+
+const FEATURED_PICKS = [
+  {
+    icon: '🖱️',
+    title: '滑鼠選購指南',
+    desc: 'DPI、辦公室怎麼選、Mac 相容性、滑鼠 vs 觸控板，完整整理 + 5 款實測比較。',
+    href: '/mouse',
+    cta: '進入滑鼠專區',
+  },
+  {
+    icon: '🔋',
+    title: 'iPhone 行動電源推薦',
+    desc: '實測 12+ 款 MagSafe 磁吸行動電源，Top 3 完整評比。',
+    href: '/best-power-bank-iphone-2026',
+    cta: '查看行動電源推薦',
+  },
+  {
+    icon: '🖥️',
+    title: '3C 生產力設備專區',
+    desc: '滑鼠、鍵盤、行動電源選購指南總覽，依你的問題快速找到答案。',
+    href: '/3c',
+    cta: '進入 3C 專區',
+  },
 ]
 
 export default function HomePage() {
@@ -56,7 +80,7 @@ export default function HomePage() {
                 <span>→</span>
               </Link>
               <Link
-                href="/blog?category=AI工具"
+                href="/mouse"
                 className="
                   inline-flex items-center gap-2
                   bg-white text-gray-700 text-sm font-medium
@@ -66,7 +90,7 @@ export default function HomePage() {
                   transition-all duration-150
                 "
               >
-                🤖 AI 工具推薦
+                🖱️ 滑鼠選購指南
               </Link>
             </div>
           </div>
@@ -97,6 +121,39 @@ export default function HomePage() {
                 <span className="text-2xl">{cat.icon}</span>
                 <span className="text-xs text-gray-600 font-medium group-hover:text-gray-900 transition-colors text-center leading-tight">
                   {cat.label}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {/* ── 精選導購（3C 主要 hub / pillar 頁）──────────────── */}
+        <section className="py-12 border-b border-gray-100">
+          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-5">
+            精選導購
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {FEATURED_PICKS.map((pick) => (
+              <Link
+                key={pick.href}
+                href={pick.href}
+                className="
+                  group flex flex-col gap-2 p-5
+                  rounded-2xl border border-gray-200 bg-white
+                  shadow-[0_1px_4px_rgba(0,0,0,0.05)]
+                  hover:shadow-md hover:-translate-y-0.5
+                  transition-all duration-150
+                "
+              >
+                <span className="text-2xl">{pick.icon}</span>
+                <span className="font-semibold text-gray-900 text-sm group-hover:text-gray-600 transition-colors">
+                  {pick.title}
+                </span>
+                <span className="text-xs text-gray-500 leading-relaxed flex-1">
+                  {pick.desc}
+                </span>
+                <span className="text-xs font-medium text-gray-400 group-hover:text-gray-700 transition-colors">
+                  {pick.cta} →
                 </span>
               </Link>
             ))}

@@ -19,9 +19,9 @@ export default function Footer() {
               <Link href="/3c" className="hover:text-gray-900 transition-colors text-xs">3C 專區</Link>
               <Link href="/mouse" className="hover:text-gray-900 transition-colors text-xs">滑鼠選購指南</Link>
               <Link href="/blog?category=3C產品" className="hover:text-gray-900 transition-colors text-xs">3C產品</Link>
-                  <Link href="/blog?category=生活用品推薦" className="hover:text-gray-900 transition-colors text-xs">生活用品推薦</Link>
-              <Link href="/blog?category=生產力工具" className="hover:text-gray-900 transition-colors text-xs">生產力工具</Link>
-              <Link href="/blog?category=AI工具" className="hover:text-gray-900 transition-colors text-xs">AI工具</Link>
+              <Link href="/blog?category=生活用品推薦" className="hover:text-gray-900 transition-colors text-xs">生活用品推薦</Link>
+              {/* 生產力工具／辦公設備／AI工具目前底下沒有已發布文章，暫時不放連結，
+                  避免導去空分類頁；等該分類真的有文章上線再加回來 */}
             </div>
             <div className="flex flex-col gap-2">
               <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">關於</span>

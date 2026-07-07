@@ -235,7 +235,6 @@ export default function BestPowerBankPage() {
           description: p.description,
           image: p.image,
           url: p.href,
-          price: p.price,
           position: p.rank,
         }))}
       />
@@ -693,6 +692,33 @@ export default function BestPowerBankPage() {
         <p className="text-xs text-gray-400 mt-4">
           本頁部分連結為聯盟行銷連結，購買時不影響你的售價。
         </p>
+      </section>
+
+      {/* ── 延伸閱讀 ───────────────────────────────────────── */}
+      <section className="mb-12 pt-8 border-t border-gray-100">
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-5">
+          延伸閱讀
+        </p>
+        <Link
+          href="/five-power-bank-guide"
+          className="
+            flex items-start gap-4 p-4
+            rounded-xl border border-gray-200 bg-white
+            shadow-[0_1px_4px_rgba(0,0,0,0.05)]
+            hover:shadow-md hover:-translate-y-0.5
+            transition-all duration-150 group
+          "
+        >
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-gray-900 group-hover:text-gray-600 transition-colors text-sm leading-snug mb-0.5">
+              2026 行動電源推薦｜不是越大越好！5大類型完整解析
+            </p>
+            <p className="text-xs text-gray-400 line-clamp-1">
+              依出國、通勤、磁吸、輕薄、高 CP 值等 5 種使用情境分類挑選，不限 iPhone。
+            </p>
+          </div>
+          <span className="text-gray-300 group-hover:text-gray-600 transition-colors text-sm mt-0.5 shrink-0">→</span>
+        </Link>
       </section>
 
       {/* ── Disclosure ─────────────────────────────────────── */}
