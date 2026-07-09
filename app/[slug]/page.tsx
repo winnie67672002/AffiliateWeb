@@ -74,6 +74,19 @@ export default async function PostPage({
 
   const colorClass = CATEGORY_COLORS[post.category] ?? 'bg-gray-50 text-gray-500 ring-1 ring-gray-200'
 
+  // ── 規格比較（comparisonTable）永遠要排在 FAQ 前面 ──────────────
+  // 當 FAQ 是直接寫在 Markdown 內文裡（faqRenderedInBody）時，
+  // 內文本身會被當成一整塊渲染，comparisonTable 這個獨立元件如果
+  // 還是放在 <PostContent> 後面，就會被擠到 FAQ／結論／延伸閱讀之後。
+  // 這裡在渲染前先把內文從「FAQ 標題」處切開，讓 ComparisonTable
+  // 可以真正插在 FAQ 標題的上面。全站 FAQ 標題統一以 "## 🧠" 開頭。
+  const FAQ_HEADING_REGEX = /^##\s*🧠.*$/m
+  const shouldSplitBeforeFaq = Boolean(post.comparisonTable && post.faqRenderedInBody)
+  const faqHeadingMatch = shouldSplitBeforeFaq ? post.content.match(FAQ_HEADING_REGEX) : null
+  const hasFaqSplit = faqHeadingMatch !== null && faqHeadingMatch.index !== undefined
+  const contentBeforeFaq = hasFaqSplit ? post.content.slice(0, faqHeadingMatch!.index) : post.content
+  const contentFromFaq = hasFaqSplit ? post.content.slice(faqHeadingMatch!.index) : null
+
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-12">
 
@@ -157,11 +170,21 @@ export default async function PostPage({
         </header>
 
         {/* ── Article Body (with inline affiliate cards) ──── */}
-        <PostContent content={post.content} affiliate={post.affiliate} />
+        <PostContent content={contentBeforeFaq} affiliate={post.affiliate} />
 
-        {/* ── Comparison Table (only when the body doesn't already have one) ── */}
+        {/* ── Comparison Table：一律插在 FAQ 前面 ── */}
         {post.comparisonTable && (
-          <ComparisonTable table={post.comparisonTable} title="規格比較" />
+          <>
+            <ComparisonTable table={post.comparisonTable} title="規格比較" />
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-5 text-center">
+              ⚠️ 售價隨活動折扣浮動，購買前請以賣場頁面標示為準。
+            </p>
+          </>
+        )}
+
+        {/* ── 內文剩餘部分（FAQ、結論、延伸閱讀…），只有在上面有切開時才需要補渲染 ── */}
+        {contentFromFaq && (
+          <PostContent content={contentFromFaq} affiliate={post.affiliate} />
         )}
 
         {/* ── FAQ (only when not already written inline in the Markdown body) ── */}
