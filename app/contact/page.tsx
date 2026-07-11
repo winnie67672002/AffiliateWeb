@@ -48,13 +48,13 @@ export default function ContactPage() {
             Email
           </p>
           <a
-            href="mailto:contact@goodpickslab.com"
+            href="mailto:mochmochshop@gmail.com"
             className="inline-flex items-center gap-3 text-lg font-semibold text-gray-900 hover:text-gray-600 transition-colors group"
           >
             <span className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-xl group-hover:bg-gray-200 transition-colors">
               ✉️
             </span>
-            contact@goodpickslab.com
+            mochmochshop@gmail.com
           </a>
 
           <div className="mt-8 pt-6 border-t border-gray-100 space-y-3 text-sm text-gray-500">
