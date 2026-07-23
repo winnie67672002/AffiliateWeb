@@ -2,7 +2,9 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkDirective from 'remark-directive'
 import affiliatePlugin from '@/lib/affiliatePlugin'
+import adPlugin from '@/lib/adPlugin'
 import AffiliateCard from '@/components/AffiliateCard'
+import AdBanner from '@/components/AdBanner'
 import type { AffiliateItem } from '@/lib/posts'
 import type { Components } from 'react-markdown'
 import type { Element } from 'hast'
@@ -40,6 +42,11 @@ const item = affiliate?.find((a) => a.id === affiliateid)
       )
     },
 
+    'ad-banner': ({ slot }: { node: Element; slot?: string }) => {
+      if (!slot) return null
+      return <AdBanner slot={slot} className="my-8 not-prose" />
+    },
+
     // ── Markdown 表格：套用跟 ComparisonTable 元件一致的樣式 ──
     // 預設 prose 的表格樣式很陽春，中文內容欄寬容易跑版、看起來沒對齊，
     // 這裡統一改成有邊框、標題列灰底、可橫向捲動的卡片式表格。
@@ -75,7 +82,7 @@ const item = affiliate?.find((a) => a.id === affiliateid)
   return (
     <div className="prose">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkDirective, affiliatePlugin]}
+        remarkPlugins={[remarkGfm, remarkDirective, affiliatePlugin, adPlugin]}
         components={components}
       >
         {content}

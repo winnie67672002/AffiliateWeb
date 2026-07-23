@@ -44,6 +44,20 @@ export default function RootLayout({
     <Analytics />
     <AnalyticsTracker />
 
+    {/* Google AdSense —— 只有設定 NEXT_PUBLIC_ADSENSE_ID（格式 ca-pub-xxxxxxxxxxxxxxxx）
+        之後才會載入，去 AdSense 後台申請通過、拿到發布商 ID 後，
+        在 Vercel 專案的環境變數加上 NEXT_PUBLIC_ADSENSE_ID 即可自動生效，
+        不需要再改這支檔案。文章內文用 ::ad[slot-id] 插入的廣告位（見 AdBanner.tsx）
+        也是靠這支 script 載入的 adsbygoogle.js 運作。 */}
+    {process.env.NEXT_PUBLIC_ADSENSE_ID && (
+      <Script
+        async
+        src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_ID}`}
+        crossOrigin="anonymous"
+        strategy="afterInteractive"
+      />
+    )}
+
     {/* GA */}
     <Script
       src={`https://www.googletagmanager.com/gtag/js?id=AW-17789304314`}
