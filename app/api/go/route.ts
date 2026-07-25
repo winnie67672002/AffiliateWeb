@@ -1,5 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+// Supabase 點擊紀錄（使用 anon key，透過 PostgREST REST API 寫入，
+// 不引入 @supabase/supabase-js 依賴，避免修改 package.json 以外的檔案）
+async function logClickToSupabase(data: {
+  zone: string | null
+  subid: string | null
+  browser: string | null
+  campaign: string | null
+  referer: string | null
+  userAgent: string | null
+}) {
+  const supabaseUrl = process.env.SUPABASE_URL
+  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('Supabase click log skipped: SUPABASE_URL or SUPABASE_ANON_KEY is not configured')
+    return
+  }
+
+  try {
+    const res = await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/clicks`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${supabaseAnonKey}`,
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify({
+        zone: data.zone,
+        subid: data.subid,
+        browser: data.browser,
+        campaign: data.campaign,
+        referer: data.referer,
+        user_agent: data.userAgent,
+      }),
+    })
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => '')
+      console.error(`Supabase click log failed: ${res.status} ${res.statusText} ${text}`)
+    }
+  } catch (err) {
+    console.error('Supabase click log failed:', err)
+  }
+}
+
 // PropellerAds 流量追蹤 → 蝦皮聯盟導流 API
 // GET /api/go?zone=<zone_id>&subid=<subid>&browser=<browser_version>&campaign=<可選>
 //
@@ -77,6 +123,10 @@ export async function GET(request: NextRequest) {
     )
   }
 
+  const referer = request.headers.get('referer')
+  const userAgent = request.headers.get('user-agent')
+  const timestamp = new Date().toISOString()
+
   // 點擊記錄，會出現在 Vercel Function Logs
   console.log(
     JSON.stringify({
@@ -85,11 +135,18 @@ export async function GET(request: NextRequest) {
       subid,
       browser,
       campaign,
-      referer: request.headers.get('referer'),
-      userAgent: request.headers.get('user-agent'),
-      timestamp: new Date().toISOString(),
+      referer,
+      userAgent,
+      timestamp,
     })
   )
+
+  // 寫入 Supabase 點擊紀錄；成功或失敗都不能阻止 302 redirect
+  try {
+    await logClickToSupabase({ zone, subid, browser, campaign, referer, userAgent })
+  } catch (err) {
+    console.error('Unexpected error logging click to Supabase:', err)
+  }
 
   return NextResponse.redirect(destination.toString(), { status: 302 })
 }
