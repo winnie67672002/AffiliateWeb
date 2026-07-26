@@ -142,23 +142,23 @@ export async function GET(request: NextRequest) {
   const timestamp = new Date().toISOString()
 
   // 點擊記錄，會出現在 Vercel Function Logs
-  console.log(
-    JSON.stringify({
-      event: 'redirect_click',
-      zone,
-      subid,
-      browser,
-      campaign,
-      referer,
-      userAgent,
-      timestamp,
-      country,
-      device,
-      language,
-      os,
-      subzone_id,
-    })
-  )
+  // console.log(
+  //   JSON.stringify({
+  //     event: 'redirect_click',
+  //     zone,
+  //     subid,
+  //     browser,
+  //     campaign,
+  //     referer,
+  //     userAgent,
+  //     timestamp,
+  //     country,
+  //     device,
+  //     language,
+  //     os,
+  //     subzone_id,
+  //   })
+  // )
 
   // 寫入 Supabase 點擊紀錄；成功或失敗都不能阻止 302 redirect
   try {
