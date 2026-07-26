@@ -9,6 +9,8 @@ async function logClickToSupabase(data: {
   campaign: string | null
   referer: string | null
   userAgent: string | null
+  country: string | null
+  device: string | null
 }) {
   const supabaseUrl = process.env.SUPABASE_URL
   const supabaseAnonKey = process.env.SUPABASE_ANON_KEY
@@ -34,6 +36,9 @@ async function logClickToSupabase(data: {
         campaign: data.campaign,
         referer: data.referer,
         user_agent: data.userAgent,
+        country: data.country,
+        device: data.device,
+
       }),
     })
 
@@ -88,6 +93,8 @@ export async function GET(request: NextRequest) {
   const subid = searchParams.get('subid')
   const browser = searchParams.get('browser')
   const campaign = searchParams.get('campaign')
+   const country = searchParams.get('country')
+  const device = searchParams.get('device')
 
   const affiliateUrl = process.env.SHOPEE_AFFILIATE_URL
   if (!affiliateUrl) {
@@ -137,12 +144,14 @@ export async function GET(request: NextRequest) {
       referer,
       userAgent,
       timestamp,
+      country,
+      device,
     })
   )
 
   // 寫入 Supabase 點擊紀錄；成功或失敗都不能阻止 302 redirect
   try {
-    await logClickToSupabase({ zone, subid, browser, campaign, referer, userAgent })
+    await logClickToSupabase({ zone, subid, browser, campaign, referer, userAgent, country, device })
   } catch (err) {
     console.error('Unexpected error logging click to Supabase:', err)
   }
