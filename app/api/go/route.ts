@@ -41,9 +41,9 @@ async function logClickToSupabase(data: {
         user_agent: data.userAgent,
         country: data.country,
         device: data.device,
-        language: data.device,
-        os: data.device,
-        subzone_id: data.device,
+        language: data.language,
+        os: data.os,
+        subzone_id: data.subzone_id,
       }),
     })
 
