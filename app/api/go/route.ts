@@ -84,7 +84,11 @@ function isAllowedHost(hostname: string, allowedHosts: string[]): boolean {
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
-
+console.log({
+  hasUrl: !!process.env.SUPABASE_URL,
+  hasKey: !!process.env.SUPABASE_ANON_KEY,
+  vercelEnv: process.env.VERCEL_ENV,
+})
   const zone = searchParams.get('zone')
   const subid = searchParams.get('subid')
   const browser = searchParams.get('browser')
