@@ -46,6 +46,64 @@ function getClientIp(request: NextRequest): string | null {
 }
 
 // ============================================================================
+// 短時間重複 Redirect 保護
+// ============================================================================
+//
+// 目的不是偵測 Bot，而是避免同一個點擊在幾秒內被重複導向 Shopee，
+// 降低短時間大量 redirect 造成 Shopee 風控的風險。
+//
+// 判斷 key 優先用 subid + ip；沒有 subid 時退回 ip + userAgent（不單獨用
+// browser、也不單獨用 ip）。同一個 key 在 10 秒內已經成功 redirect 過，
+// 就不再 302，改回傳 204 No Content；10 秒後自動恢復正常。
+//
+// 實作方式：process 記憶體內的 Map（key → 上次成功 redirect 的時間戳記），
+// 不查詢資料庫、不額外呼叫 Supabase，純粹是這次 request 處理過程中的一次
+// 記憶體讀寫，不會增加資料庫查詢次數。代價是：Serverless（如 Vercel）冷啟動
+// 或多個實例並行時，各實例各自維護一份 Map，保護效果可能打折，但不會出錯。
+const DUPLICATE_REDIRECT_WINDOW_MS = 10_000
+// 避免長時間運行的 process 讓 Map 無限增長，成長到一定規模才觸發一次清理。
+const DUPLICATE_REDIRECT_PRUNE_THRESHOLD = 2000
+
+const recentRedirects = new Map<string, number>()
+
+function getDuplicateRedirectKey(
+  subid: string | null,
+  ip: string | null,
+  userAgent: string | null
+): string {
+  if (subid) {
+    return `subid:${subid}|ip:${ip ?? ''}`
+  }
+  return `ip:${ip ?? ''}|ua:${userAgent ?? ''}`
+}
+
+function pruneExpiredRedirects(now: number): void {
+  for (const [key, lastRedirectAt] of recentRedirects) {
+    if (now - lastRedirectAt >= DUPLICATE_REDIRECT_WINDOW_MS) {
+      recentRedirects.delete(key)
+    }
+  }
+}
+
+// 回傳 true 代表「這是 10 秒內的重複 redirect」。回傳 false（第一次請求）時，
+// 會順帶把目前時間戳記記錄下來，作為接下來 10 秒的判斷基準。
+function isDuplicateRedirect(key: string): boolean {
+  const now = Date.now()
+
+  if (recentRedirects.size > DUPLICATE_REDIRECT_PRUNE_THRESHOLD) {
+    pruneExpiredRedirects(now)
+  }
+
+  const lastRedirectAt = recentRedirects.get(key)
+  if (lastRedirectAt !== undefined && now - lastRedirectAt < DUPLICATE_REDIRECT_WINDOW_MS) {
+    return true
+  }
+
+  recentRedirects.set(key, now)
+  return false
+}
+
+// ============================================================================
 // Supabase 點擊紀錄（使用 anon key，透過 PostgREST REST API 寫入，
 // 不引入 @supabase/supabase-js 依賴，避免修改 package.json 以外的檔案）
 // ============================================================================
@@ -67,6 +125,8 @@ interface ClickLogData {
   blockReason: string | null
   trackingKey: string | null
   trackingMatched: boolean | null
+  redirected: boolean
+  skipReason: string | null
 }
 
 async function insertClickRow(
@@ -110,15 +170,17 @@ async function logClickToSupabase(data: ClickLogData) {
     user_activity: data.user_activity,
   }
 
-  // 新增欄位（ip / is_blocked / block_reason / tracking_key / tracking_matched）
-  // 需要先在 Supabase 的 clicks 資料表加上對應欄位，SQL 如下（在 Supabase
-  // SQL editor 執行一次即可）：
+  // 新增欄位（ip / is_blocked / block_reason / tracking_key / tracking_matched /
+  // redirected / skip_reason）需要先在 Supabase 的 clicks 資料表加上對應欄位，
+  // SQL 如下（在 Supabase SQL editor 執行一次即可）：
   //
   //   alter table clicks add column if not exists ip text;
   //   alter table clicks add column if not exists is_blocked boolean default false;
   //   alter table clicks add column if not exists block_reason text;
   //   alter table clicks add column if not exists tracking_key text;
   //   alter table clicks add column if not exists tracking_matched boolean;
+  //   alter table clicks add column if not exists redirected boolean;
+  //   alter table clicks add column if not exists skip_reason text;
   //
   // 在欄位尚未建立前，帶新欄位的 insert 會被 PostgREST 拒絕（unknown column），
   // 這裡會自動 fallback 成只寫入舊欄位，確保既有 log 行為不會被這次改動打斷。
@@ -129,6 +191,8 @@ async function logClickToSupabase(data: ClickLogData) {
     block_reason: data.blockReason,
     tracking_key: data.trackingKey,
     tracking_matched: data.trackingMatched,
+    redirected: data.redirected,
+    skip_reason: data.skipReason,
   }
 
   try {
@@ -376,6 +440,8 @@ export async function GET(request: NextRequest) {
         blockReason: blockReason,
         trackingKey: track,
         trackingMatched,
+        redirected: false,
+        skipReason: null,
       }).catch(() => {})
     }
 
@@ -385,7 +451,11 @@ export async function GET(request: NextRequest) {
     )
   }
 
-  // 寫入 Supabase 點擊紀錄；成功或失敗都不能阻止 302 redirect
+  // ---- 防護 3：短時間重複 Redirect 保護（10 秒內同 key 不重複導轉）--------
+  const duplicateRedirectKey = getDuplicateRedirectKey(subid, ip, userAgent)
+  const isDuplicate = isDuplicateRedirect(duplicateRedirectKey)
+
+  // 寫入 Supabase 點擊紀錄；成功或失敗都不能阻止 redirect（或 204）
   try {
     await logClickToSupabase({
       zone,
@@ -405,9 +475,15 @@ export async function GET(request: NextRequest) {
       blockReason: botDetected ? 'suspected_bot' : null,
       trackingKey: track,
       trackingMatched,
+      redirected: !isDuplicate,
+      skipReason: isDuplicate ? 'duplicate_within_10s' : null,
     })
   } catch (err) {
     console.error('Unexpected error logging click to Supabase:', err)
+  }
+
+  if (isDuplicate) {
+    return new NextResponse(null, { status: 204 })
   }
 
   return NextResponse.redirect(destination.toString(), { status: 302 })
