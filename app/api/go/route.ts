@@ -26,7 +26,7 @@ function isBotUserAgent(userAgent: string | null): boolean {
 // 單一 subid 在數小時內被多個互不相關、明顯偽造/輪替的 UA 重複打點擊，
 // 其中包含 VirusTotal 掃描器與 Go-http-client，判定為代理農場／機器人流量）。
 // 可透過環境變數 BLOCKED_ZONES（逗號分隔）疊加更多 zone，不需要改程式碼重新部署。
-const DEFAULT_BLOCKED_ZONES = ['6542888', '11283975']
+const DEFAULT_BLOCKED_ZONES = ['6542888', '11283975','9959951','9894439','11019169']
 
 function getBlockedZones(): Set<string> {
   const fromEnv = process.env.BLOCKED_ZONES
