@@ -22,6 +22,33 @@ function isBotUserAgent(userAgent: string | null): boolean {
   return BOT_UA_KEYWORDS.some((keyword) => ua.includes(keyword))
 }
 
+// 明確的 Hard Bot 關鍵字（不分大小寫比對）。與上面 BOT_UA_KEYWORDS 完全分開：
+// 這裡只放「幾乎不可能是真人瀏覽器」的自動化工具／腳本／掃描器關鍵字，
+// 命中就直接擋（見下方 GET handler），不會因為命中 BOT_UA_KEYWORDS 的
+// bot/crawler/spider/facebookexternalhit 等較寬鬆的關鍵字就被升級成 Hard Bot。
+const HARD_BOT_UA_KEYWORDS = [
+  'go-http-client',
+  'virustotal',
+  'curl',
+  'wget',
+  'python-requests',
+  'python-urllib',
+  'aiohttp',
+  'headlesschrome',
+  'phantomjs',
+  'selenium',
+  'puppeteer',
+  'playwright',
+  'apache-httpclient',
+  'stagefright',
+]
+
+function isHardBotUserAgent(userAgent: string | null): boolean {
+  if (!userAgent) return false // 缺少 UA 不視為 Hard Bot，交由既有 suspected bot 標記處理
+  const ua = userAgent.toLowerCase()
+  return HARD_BOT_UA_KEYWORDS.some((keyword) => ua.includes(keyword))
+}
+
 // 已確認為異常流量的 zone 黑名單（依 2026-07-27 點擊報告分析：zone 6542888
 // 單一 subid 在數小時內被多個互不相關、明顯偽造/輪替的 UA 重複打點擊，
 // 其中包含 VirusTotal 掃描器與 Go-http-client，判定為代理農場／機器人流量）。
@@ -101,6 +128,168 @@ function isDuplicateRedirect(key: string): boolean {
 
   recentRedirects.set(key, now)
   return false
+}
+
+// ============================================================================
+// IP + Click ID pair 防重複 ＋ IP cooldown（process memory，僅供防刷判斷用）
+// ============================================================================
+//
+// 目的：降低同一個 IP 在短時間內反覆進入 Shopee 的次數，避免機器人／異常流量
+// 大量觸發 302。完全不查詢 Supabase 做防刷判斷、不引入 Redis / Vercel KV 等
+// 外部服務，全部用 process 記憶體內的 Map 完成（Supabase 仍然只負責既有的
+// click log，不參與這裡的防刷判斷）。
+//
+// 重要限制（刻意的 trade-off，不是 bug）：
+// - 這些 Map 存在於單一 serverless process 的記憶體中，Vercel cold start 後
+//   會被重置歸零；不同 serverless instance 之間也不會共享同一份 Map，因此
+//   防護效果不是 100% 全域一致。即使如此也不查 Supabase、不增加外部服務，
+//   也不會增加正常 request 的 DB 查詢次數。
+//
+// 規則摘要：
+// 1. 同一個 IP + subid（Click ID）在 72 小時 TTL 內只允許成功 302 一次，
+//    重複命中回 204（skip_reason = "ip_clickid_used"）。
+// 2. 每個新 IP 前兩個「不同」subid 可以直接 302（不進 cooldown）；
+//    第二個不同 subid 成功後開始 30 分鐘 IP cooldown。
+// 3. Cooldown 期間所有 request 一律 204（skip_reason = "ip_cooldown"），
+//    不更新 lastAllowedAt / successCount / cooldownMinutes。
+// 4. 每次 cooldown 結束後，只允許一個「尚未成功過」的新 subid 成功 302，
+//    成功後 cooldown 遞增 15 分鐘（30 → 45 → ... → 最高 180 分鐘）。
+// 5. 距離上一次成功 302 太久（超過目前 cooldownMinutes 的 3 倍）時，視為
+//    該 IP 長時間沒有活動，重置回「新 IP」狀態，避免永久懲罰。
+
+const IP_CLICKID_TTL_MS = 72 * 60 * 60 * 1000 // 72 小時
+const IP_CLICKID_PRUNE_THRESHOLD = 2000
+
+const IP_COOLDOWN_START_MINUTES = 30
+const IP_COOLDOWN_STEP_MINUTES = 15
+const IP_COOLDOWN_MAX_MINUTES = 180
+const IP_COOLDOWN_RESET_MULTIPLIER = 3
+const IP_COOLDOWN_PRUNE_THRESHOLD = 2000
+
+// key：`${ip}|${subid}`，value：上次成功 302 的時間戳記
+const recentIpClickIds = new Map<string, number>()
+
+interface IpCooldownState {
+  lastAllowedAt: number
+  cooldownMinutes: number
+  successCount: number
+  uniqueClickIdsUsed: number
+}
+
+// key：ip，value：該 IP 目前的 cooldown 狀態
+const ipCooldowns = new Map<string, IpCooldownState>()
+
+function getIpClickIdKey(ip: string | null, subid: string | null): string {
+  return `${ip ?? ''}|${subid ?? ''}`
+}
+
+function pruneExpiredIpClickIds(now: number): void {
+  for (const [key, lastSuccessAt] of recentIpClickIds) {
+    if (now - lastSuccessAt >= IP_CLICKID_TTL_MS) {
+      recentIpClickIds.delete(key)
+    }
+  }
+}
+
+// 回傳 true 代表這個 IP + subid pair 在 72 小時內已經成功 302 過一次。
+function hasSuccessfulIpClickId(key: string, now: number): boolean {
+  if (recentIpClickIds.size > IP_CLICKID_PRUNE_THRESHOLD) {
+    pruneExpiredIpClickIds(now)
+  }
+  const lastSuccessAt = recentIpClickIds.get(key)
+  return lastSuccessAt !== undefined && now - lastSuccessAt < IP_CLICKID_TTL_MS
+}
+
+// 判斷一筆 IP cooldown 狀態是否已經「久到可以視為新 IP」：
+// - 已經進入 cooldown（cooldownMinutes > 0）：距離上次成功 302 超過
+//   cooldownMinutes 的 IP_COOLDOWN_RESET_MULTIPLIER 倍，就重置（規格第十一節）。
+// - 還沒進入 cooldown（只用掉第一個免費名額）：沿用跟 IP + Click ID 一樣的
+//   72 小時上限，純粹是記憶體清理用，避免無限增長。
+function isIpCooldownStale(state: IpCooldownState, now: number): boolean {
+  if (state.cooldownMinutes > 0) {
+    return now - state.lastAllowedAt > state.cooldownMinutes * IP_COOLDOWN_RESET_MULTIPLIER * 60_000
+  }
+  return now - state.lastAllowedAt > IP_CLICKID_TTL_MS
+}
+
+function pruneStaleIpCooldowns(now: number): void {
+  for (const [key, state] of ipCooldowns) {
+    if (isIpCooldownStale(state, now)) {
+      ipCooldowns.delete(key)
+    }
+  }
+}
+
+// 取得目前 IP 的「有效」cooldown 狀態；如果太久沒有成功過，視為新 IP
+// （見上方說明）。純粹讀取／視情況清理，不會寫入 ipCooldowns —— 寫入只發生
+// 在真正放行 302 時（見 decideIpGate 呼叫端）。
+function getEffectiveIpCooldownState(ipKey: string, now: number): IpCooldownState {
+  if (ipCooldowns.size > IP_COOLDOWN_PRUNE_THRESHOLD) {
+    pruneStaleIpCooldowns(now)
+  }
+
+  const existing = ipCooldowns.get(ipKey)
+  if (!existing || isIpCooldownStale(existing, now)) {
+    return { lastAllowedAt: 0, cooldownMinutes: 0, successCount: 0, uniqueClickIdsUsed: 0 }
+  }
+  return existing
+}
+
+type IpGateDecision =
+  | { outcome: 'ip_clickid_used' }
+  | { outcome: 'ip_cooldown' }
+  | { outcome: 'success'; ipKey: string; ipClickIdKey: string; nextState: IpCooldownState }
+
+// 純判斷、不寫入任何 Map。呼叫端只有在真的要放行 302 時，才把
+// nextState / ipClickIdKey 寫回 recentIpClickIds / ipCooldowns（見 GET handler），
+// 確保被擋掉的 request 不會誤消耗名額、不會誤更新 cooldown。
+function decideIpGate(ip: string | null, subid: string | null, now: number): IpGateDecision {
+  const ipKey = ip ?? ''
+  const ipClickIdKey = getIpClickIdKey(ip, subid)
+
+  // 同一個 IP + subid 在 72 小時內已經成功過，永遠不能再次成功
+  // （即使 cooldown 已經結束也一樣，見規格第十節）。
+  if (hasSuccessfulIpClickId(ipClickIdKey, now)) {
+    return { outcome: 'ip_clickid_used' }
+  }
+
+  const state = getEffectiveIpCooldownState(ipKey, now)
+
+  const inActiveCooldown =
+    state.cooldownMinutes > 0 && now - state.lastAllowedAt < state.cooldownMinutes * 60_000
+
+  if (inActiveCooldown) {
+    return { outcome: 'ip_cooldown' }
+  }
+
+  const nextUniqueClickIdsUsed = state.uniqueClickIdsUsed + 1
+
+  let nextCooldownMinutes: number
+  if (nextUniqueClickIdsUsed <= 1) {
+    // 這個 IP 的第一個不同 subid：先放行，還不開始 cooldown
+    nextCooldownMinutes = 0
+  } else if (nextUniqueClickIdsUsed === 2) {
+    // 第二個不同 subid：放行，並開始 30 分鐘 cooldown
+    nextCooldownMinutes = IP_COOLDOWN_START_MINUTES
+  } else {
+    // cooldown 結束後的每一次成功，cooldown 遞增 15 分鐘，最高 180 分鐘
+    nextCooldownMinutes = Math.min(
+      state.cooldownMinutes + IP_COOLDOWN_STEP_MINUTES,
+      IP_COOLDOWN_MAX_MINUTES
+    )
+  }
+
+  return {
+    outcome: 'success',
+    ipKey,
+    ipClickIdKey,
+    nextState: {
+      lastAllowedAt: now,
+      cooldownMinutes: nextCooldownMinutes,
+      successCount: state.successCount + 1,
+      uniqueClickIdsUsed: nextUniqueClickIdsUsed,
+    },
+  }
 }
 
 // ============================================================================
@@ -451,9 +640,85 @@ export async function GET(request: NextRequest) {
     )
   }
 
-  // ---- 防護 3：短時間重複 Redirect 保護（10 秒內同 key 不重複導轉）--------
+  // ---- 防護 3：Hard Bot（明確判定為機器人／掃描器／自動化工具，直接擋）----
+  // 與上面 isBotUserAgent()／BOT_UA_KEYWORDS 的「只標記、不攔截」邏輯完全
+  // 分開判斷；只有命中 HARD_BOT_UA_KEYWORDS 才會走到這裡。命中後直接 204，
+  // 不進入後面的 10 秒 duplicate／IP + Click ID pair／IP cooldown，
+  // 不消耗 IP + Click ID 名額、不建立也不更新 IP cooldown、不更新 successCount。
+  const hardBotDetected = isHardBotUserAgent(userAgent)
+
+  if (hardBotDetected) {
+    console.warn(
+      JSON.stringify({
+        event: 'redirect_blocked',
+        reason: 'hard_bot',
+        zone,
+        subid,
+        ip,
+        userAgent,
+      })
+    )
+
+    if (supabaseUrl && supabaseAnonKey) {
+      logClickToSupabase({
+        zone,
+        subid,
+        browser,
+        campaign,
+        referer,
+        userAgent,
+        country,
+        device,
+        language,
+        os,
+        subzone_id,
+        user_activity,
+        ip,
+        isBlocked: true,
+        blockReason: 'hard_bot',
+        trackingKey: track,
+        trackingMatched,
+        redirected: false,
+        skipReason: null,
+      }).catch(() => {})
+    }
+
+    return new NextResponse(null, { status: 204 })
+  }
+
+  // ---- 防護 4：短時間重複 Redirect 保護（10 秒內同 key 不重複導轉，原邏輯不變）----
   const duplicateRedirectKey = getDuplicateRedirectKey(subid, ip, userAgent)
   const isDuplicate = isDuplicateRedirect(duplicateRedirectKey)
+
+  // ---- 防護 5：IP + Click ID pair 防重複 ------------------------------------
+  // ---- 防護 6：IP cooldown ---------------------------------------------------
+  // 只有在「不是 10 秒內重複」時才需要判斷，避免同一次 request 重複消耗名額。
+  // 所有狀態更新（recentIpClickIds / ipCooldowns）只發生在真正要放行 302 時，
+  // 被擋掉的 request（duplicate / ip_clickid_used / ip_cooldown）完全不寫入。
+  let redirected: boolean
+  let skipReason: string | null
+
+  if (isDuplicate) {
+    redirected = false
+    skipReason = 'duplicate_within_10s'
+  } else {
+    const now = Date.now()
+    const gate = decideIpGate(ip, subid, now)
+
+    if (gate.outcome === 'ip_clickid_used') {
+      redirected = false
+      skipReason = 'ip_clickid_used'
+    } else if (gate.outcome === 'ip_cooldown') {
+      redirected = false
+      skipReason = 'ip_cooldown'
+    } else {
+      // 真正要放行 302 了，才把成功狀態寫回 Map（見上方各 Map 說明）
+      recentIpClickIds.set(gate.ipClickIdKey, now)
+      ipCooldowns.set(gate.ipKey, gate.nextState)
+      redirected = true
+      skipReason = null
+    }
+  }
 
   // 寫入 Supabase 點擊紀錄；成功或失敗都不能阻止 redirect（或 204）
   try {
@@ -475,14 +740,14 @@ export async function GET(request: NextRequest) {
       blockReason: botDetected ? 'suspected_bot' : null,
       trackingKey: track,
       trackingMatched,
-      redirected: !isDuplicate,
-      skipReason: isDuplicate ? 'duplicate_within_10s' : null,
+      redirected,
+      skipReason,
     })
   } catch (err) {
     console.error('Unexpected error logging click to Supabase:', err)
   }
 
-  if (isDuplicate) {
+  if (!redirected) {
     return new NextResponse(null, { status: 204 })
   }
 
