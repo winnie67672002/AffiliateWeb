@@ -293,6 +293,68 @@ function decideIpGate(ip: string | null, subid: string | null, now: number): IpG
 }
 
 // ============================================================================
+// subid IP rotation 偵測（process memory，僅供防刷判斷用）
+// ============================================================================
+//
+// 目的：抓「同一個 subid（Click ID）短時間內被大量不同 IP 打」的洗量手法。
+// 這種手法會完全繞過上面的 IP + Click ID pair 與 IP cooldown——因為那兩層都是
+// 以 IP 為主鍵，攻擊者只要每次換一個新 IP，對這兩層來說永遠都是「全新的 IP」，
+// 兩層都不會累積到足以攔截的狀態。這裡改成以 subid 為主鍵，直接看「這個
+// subid 最近 1 小時內出現過幾個不同 IP」。
+//
+// 規則：同一 subid 在 1 小時滾動視窗內，第 5 個不同 IP 開始直接 204，
+// 而且只要視窗內 unique IP 數仍然 >= 5，就持續擋，不是永久封鎖這個 subid——
+// 視窗內最舊的 IP 過期後 unique 數會自然下降，之後新來的 IP 才有機會再放行。
+//
+// 只看 IP 數量，刻意不要求 UA 也要不同：如果 bot 用同一個 UA 換一堆 IP
+// （常見的代理池手法），也要能被抓到；UA 的判斷交給既有的
+// isBotUserAgent／isHardBotUserAgent 處理，這裡不重複判斷。
+//
+// 這個 Map 跟 recentIpClickIds／ipCooldowns 的用途不同：那兩個只在「真的要
+// 放行 302」時才寫入；subidIpHistory 則是不管這次最後有沒有成功 302，只要
+// request 真的進來、通過前面的 10 秒 duplicate 判斷，就會記錄，因為這裡要
+// 偵測的是「這個 subid 是否正在被大量 IP 打」這個行為本身，不是成功次數。
+//
+// 同樣是 process memory：Vercel cold start 會重置，不同 serverless instance
+// 之間也不共享，因此防護效果不是 100% 全域一致；即使如此也不查 Supabase、
+// 不引入 Redis / Vercel KV 等外部服務，是刻意接受的 trade-off。
+
+const SUBID_ROTATION_WINDOW_MS = 60 * 60 * 1000 // 1 小時滾動視窗
+const SUBID_ROTATION_MAX_IPS = 5 // 視窗內累積到第 5 個不同 IP 就開始擋
+const SUBID_ROTATION_PRUNE_THRESHOLD = 2000
+
+// key：subid，value：這個 subid 最近 1 小時內出現過的 {ip, time} 紀錄
+const subidIpHistory = new Map<string, { ip: string; time: number }[]>()
+
+function pruneStaleSubidHistory(now: number): void {
+  for (const [subid, history] of subidIpHistory) {
+    const fresh = history.filter((item) => now - item.time < SUBID_ROTATION_WINDOW_MS)
+    if (fresh.length === 0) {
+      subidIpHistory.delete(subid)
+    } else if (fresh.length !== history.length) {
+      subidIpHistory.set(subid, fresh)
+    }
+  }
+}
+
+// 回傳 true 代表這個 subid 在最近 1 小時內已經出現過 >= 5 個不同 IP
+// （包含這次）。不管回傳 true 或 false，都會把這次的 {ip, now} 記錄進去，
+// 因為要偵測的是「出現過的 IP」，不是「成功 302 的次數」。
+function checkSubidRotation(subid: string, ip: string, now: number): boolean {
+  if (subidIpHistory.size > SUBID_ROTATION_PRUNE_THRESHOLD) {
+    pruneStaleSubidHistory(now)
+  }
+
+  const history = subidIpHistory.get(subid) ?? []
+  const fresh = history.filter((item) => now - item.time < SUBID_ROTATION_WINDOW_MS)
+  fresh.push({ ip, time: now })
+  subidIpHistory.set(subid, fresh)
+
+  const uniqueIps = new Set(fresh.map((item) => item.ip)).size
+  return uniqueIps >= SUBID_ROTATION_MAX_IPS
+}
+
+// ============================================================================
 // Supabase 點擊紀錄（使用 anon key，透過 PostgREST REST API 寫入，
 // 不引入 @supabase/supabase-js 依賴，避免修改 package.json 以外的檔案）
 // ============================================================================
@@ -690,11 +752,13 @@ export async function GET(request: NextRequest) {
   const duplicateRedirectKey = getDuplicateRedirectKey(subid, ip, userAgent)
   const isDuplicate = isDuplicateRedirect(duplicateRedirectKey)
 
-  // ---- 防護 5：IP + Click ID pair 防重複 ------------------------------------
-  // ---- 防護 6：IP cooldown ---------------------------------------------------
-  // 只有在「不是 10 秒內重複」時才需要判斷，避免同一次 request 重複消耗名額。
-  // 所有狀態更新（recentIpClickIds / ipCooldowns）只發生在真正要放行 302 時，
-  // 被擋掉的 request（duplicate / ip_clickid_used / ip_cooldown）完全不寫入。
+  // ---- 防護 5：同一 subid 短時間內換太多不同 IP（rotation / 洗量偵測）------
+  // ---- 防護 6：IP + Click ID pair 防重複 ------------------------------------
+  // ---- 防護 7：IP cooldown ---------------------------------------------------
+  // 只有在「不是 10 秒內重複」時才需要往下判斷，避免同一次 request 重複消耗
+  // 名額。recentIpClickIds / ipCooldowns 的狀態更新只發生在真正要放行 302
+  // 時；subidIpHistory 則是只要進到這個分支（非 duplicate）就會記錄一筆，
+  // 見上方 checkSubidRotation 說明。
   let redirected: boolean
   let skipReason: string | null
 
@@ -703,20 +767,26 @@ export async function GET(request: NextRequest) {
     skipReason = 'duplicate_within_10s'
   } else {
     const now = Date.now()
-    const gate = decideIpGate(ip, subid, now)
 
-    if (gate.outcome === 'ip_clickid_used') {
+    if (subid && ip && checkSubidRotation(subid, ip, now)) {
       redirected = false
-      skipReason = 'ip_clickid_used'
-    } else if (gate.outcome === 'ip_cooldown') {
-      redirected = false
-      skipReason = 'ip_cooldown'
+      skipReason = 'subid_ip_rotation'
     } else {
-      // 真正要放行 302 了，才把成功狀態寫回 Map（見上方各 Map 說明）
-      recentIpClickIds.set(gate.ipClickIdKey, now)
-      ipCooldowns.set(gate.ipKey, gate.nextState)
-      redirected = true
-      skipReason = null
+      const gate = decideIpGate(ip, subid, now)
+
+      if (gate.outcome === 'ip_clickid_used') {
+        redirected = false
+        skipReason = 'ip_clickid_used'
+      } else if (gate.outcome === 'ip_cooldown') {
+        redirected = false
+        skipReason = 'ip_cooldown'
+      } else {
+        // 真正要放行 302 了，才把成功狀態寫回 Map（見上方各 Map 說明）
+        recentIpClickIds.set(gate.ipClickIdKey, now)
+        ipCooldowns.set(gate.ipKey, gate.nextState)
+        redirected = true
+        skipReason = null
+      }
     }
   }
 
