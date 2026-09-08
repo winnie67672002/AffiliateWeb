@@ -821,5 +821,24 @@ export async function GET(request: NextRequest) {
     return new NextResponse(null, { status: 204 })
   }
 
+  // ---- zone 級聯盟歸因：把 zone 動態帶進蝦皮的 sub_id 參數 -------------------
+  // 目的：目前蝦皮聯盟連結（無論是預設的 SHOPEE_AFFILIATE_URL，還是上面
+  // track 對應到的連結）的 Sub_id 是產生短連結時就固定寫死的，訂單報告完全
+  // 看不出是哪個 zone 帶來的成交。實測過在短連結後面加上 ?sub_id=xxx 這個
+  // query string，蝦皮會照這個值覆蓋掉原本寫死的 Sub_id，並且正常落地、正常
+  // 計入點擊報告（見 2026-09-07 用 https://s.shopee.tw/6fh6ZIZIXK?sub_id=
+  // testclaude001 的實測結果）。
+  //
+  // 格式沿用蝦皮原生的「dash 分隔對應 Sub_id1~5」規則：${campaign}-${zone}，
+  // 也就是 Sub_id1 = PropellerAds 的 campaign id、Sub_id2 = zone id，兩者都
+  // 直接沿用這次 request 已經有的資料，不額外寫死任何字串，日後不管
+  // campaign／zone 怎麼變都不需要改這裡的程式碼。
+  //
+  // 只有在有 zone 值時才覆蓋；沒有 zone（理論上不應該發生）就完全不動
+  // destination，維持覆蓋前的行為，避免任何情況下讓 redirect 失敗。
+  if (zone) {
+    destination.searchParams.set('sub_id', `${campaign ?? 'na'}-${zone}`)
+  }
+
   return NextResponse.redirect(destination.toString(), { status: 302 })
 }
