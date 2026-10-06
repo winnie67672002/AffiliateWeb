@@ -1,0 +1,372 @@
+/* ==========================================================================
+   Good Picks Lab — 短網址頁面樣式
+   沿用網站品牌：白底、極簡、高可讀性。只用於 /shorten /delete /<code>。
+   ========================================================================== */
+
+:root {
+  --sl-bg: #f6f7f9;
+  --sl-card: #ffffff;
+  --sl-text: #111827;
+  --sl-muted: #6b7280;
+  --sl-border: #e5e7eb;
+  --sl-accent: #111827;
+  --sl-accent-hover: #374151;
+  --sl-ok: #059669;
+  --sl-ok-bg: #ecfdf5;
+  --sl-warn: #b45309;
+  --sl-warn-bg: #fffbeb;
+  --sl-danger: #dc2626;
+  --sl-danger-bg: #fef2f2;
+  --sl-radius: 16px;
+  --sl-shadow: 0 1px 2px rgba(17, 24, 39, 0.04), 0 8px 24px rgba(17, 24, 39, 0.06);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  background: var(--sl-bg);
+  color: var(--sl-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.65;
+}
+
+[hidden] { display: none !important; }
+
+.sl-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.sl-top {
+  padding: 18px 20px;
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.sl-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--sl-text);
+  text-decoration: none;
+}
+
+.sl-logo {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--sl-accent);
+  color: #fff;
+  display: inline-grid;
+  place-items: center;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.sl-brand-sub { color: var(--sl-muted); font-weight: 500; }
+
+.sl-main {
+  flex: 1;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 8px 16px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sl-foot {
+  text-align: center;
+  font-size: 12px;
+  color: var(--sl-muted);
+  padding: 24px 16px 32px;
+}
+
+/* ---------- Card ---------- */
+
+.sl-card {
+  background: var(--sl-card);
+  border: 1px solid var(--sl-border);
+  border-radius: var(--sl-radius);
+  box-shadow: var(--sl-shadow);
+  padding: 28px 24px;
+}
+
+.sl-narrow { max-width: 440px; width: 100%; margin: 0 auto; }
+.sl-center { text-align: center; }
+
+.sl-title { font-size: 24px; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 8px; }
+.sl-title-sm { font-size: 19px; font-weight: 800; margin: 0 0 16px; }
+.sl-lead { color: var(--sl-muted); margin: 0 0 20px; font-size: 15px; }
+.sl-big-icon { font-size: 44px; margin: 0 0 8px; }
+
+/* ---------- Form ---------- */
+
+.sl-form { display: flex; flex-direction: column; gap: 8px; }
+
+.sl-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: #374151;
+  margin-top: 6px;
+}
+
+.sl-optional { font-weight: 500; color: var(--sl-muted); }
+
+.sl-input {
+  width: 100%;
+  font: inherit;
+  font-size: 16px; /* 避免 iOS 自動放大 */
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--sl-text);
+  outline: none;
+}
+
+.sl-input:focus { border-color: var(--sl-accent); box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08); }
+
+.sl-hint { font-size: 13px; color: var(--sl-muted); margin: 2px 0 0; }
+
+.sl-error {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--sl-danger-bg);
+  color: var(--sl-danger);
+  font-size: 14px;
+}
+
+.sl-success {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--sl-ok-bg);
+  color: #065f46;
+}
+
+.sl-success p { margin: 0; }
+
+/* ---------- Buttons ---------- */
+
+.sl-btn {
+  margin-top: 14px;
+  appearance: none;
+  border: 0;
+  border-radius: 12px;
+  background: var(--sl-accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 13px 18px;
+  cursor: pointer;
+}
+
+.sl-btn:hover { background: var(--sl-accent-hover); }
+.sl-btn:disabled { opacity: 0.6; cursor: progress; }
+.sl-btn-danger { background: var(--sl-danger); }
+.sl-btn-danger:hover { background: #b91c1c; }
+
+.sl-btn-ghost {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--sl-border);
+  background: #fff;
+  color: #374151;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.sl-btn-ghost:hover { background: #f9fafb; border-color: #d1d5db; }
+
+.sl-text-btn {
+  appearance: none;
+  border: 0;
+  background: none;
+  color: var(--sl-muted);
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* ---------- Result ---------- */
+
+.sl-field { padding: 14px 0; border-top: 1px solid var(--sl-border); }
+.sl-field:first-of-type { border-top: 0; padding-top: 0; }
+.sl-field .sl-label { margin: 0 0 6px; }
+
+.sl-copyrow { display: flex; align-items: center; gap: 10px; }
+.sl-copyrow > :first-child { flex: 1; min-width: 0; }
+
+.sl-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  font-size: 14px;
+  word-break: break-all;
+}
+
+.sl-link { color: #1d4ed8; text-decoration: none; }
+.sl-link:hover { text-decoration: underline; }
+
+.sl-token {
+  display: block;
+  background: #f3f4f6;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.sl-token-box .sl-warn {
+  margin: 10px 0 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--sl-warn-bg);
+  color: var(--sl-warn);
+  font-size: 13px;
+}
+
+.sl-value { margin: 0; }
+
+.sl-qr-wrap { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+.sl-qr {
+  width: 200px;
+  height: 200px;
+  border: 1px solid var(--sl-border);
+  border-radius: 12px;
+  background: #fff;
+  image-rendering: pixelated;
+}
+
+/* ---------- Warning page ---------- */
+
+.sl-warning { text-align: center; padding: 32px 24px; }
+
+.sl-warning-head { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+
+.sl-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #f59e0b;
+  box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.18);
+}
+
+.sl-checks { list-style: none; padding: 0; margin: 4px 0 6px; }
+
+.sl-checks li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--sl-ok-bg);
+  color: #065f46;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 6px 14px;
+}
+
+.sl-check { color: var(--sl-ok); font-weight: 800; }
+
+.sl-note { color: var(--sl-muted); font-size: 13px; margin: 6px 0 14px; }
+
+.sl-adult { font-size: 18px; font-weight: 700; margin: 0 0 8px; line-height: 1.6; }
+.sl-adult-sub { display: inline-block; margin-top: 4px; font-size: 13px; font-weight: 500; color: var(--sl-muted); }
+
+.sl-art {
+  margin: 20px auto 8px;
+  max-width: 520px;
+}
+
+.sl-art img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 14px;
+  background: #f3f4f6;
+}
+
+.sl-art figcaption {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--sl-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sl-art-title { color: var(--sl-text); font-weight: 700; }
+.sl-art-caption { font-size: 12px; }
+
+.sl-countdown { margin-top: 18px; }
+.sl-countdown p { margin: 0 0 8px; font-weight: 600; }
+
+.sl-progress {
+  height: 6px;
+  background: #f3f4f6;
+  border-radius: 999px;
+  overflow: hidden;
+  max-width: 320px;
+  margin: 0 auto 10px;
+}
+
+.sl-progress span {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--sl-accent);
+  border-radius: 999px;
+  transition: width 1s linear;
+}
+
+.sl-dest { font-weight: 400 !important; font-size: 12px; color: var(--sl-muted); }
+
+/* ---------- Responsive ---------- */
+
+@media (min-width: 640px) {
+  .sl-card { padding: 34px 36px; }
+  .sl-title { font-size: 28px; }
+}
+
+@media (max-width: 420px) {
+  .sl-copyrow { flex-direction: column; align-items: stretch; }
+  .sl-qr { width: 180px; height: 180px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sl-progress span { transition: none; }
+}
+
+/* ---------- 內容警示頁：「繼續前往」（a 連結，另開新分頁） ---------- */
+
+.sl-btn-continue {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  margin: 22px auto 0;
+  text-align: center;
+  text-decoration: none;
+}
+
+.sl-btn-continue:focus-visible { outline: 3px solid rgba(17, 24, 39, 0.3); outline-offset: 2px; }
