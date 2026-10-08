@@ -24,16 +24,19 @@ import { isSafeRedirectUrl, isValidShortCode } from '@/lib/shortlink/validate'
 export const dynamic = 'force-dynamic'
 
 // 「查看我的作品」是固定的本站路徑，與短網址無關，不含任何目的地網址
-const ARTWORK_LINK = '/artwork-site'
+//const ARTWORK_LINK = '/artwork-site'
 
 function actionsHtml(goHref: string | null): string {
   // 立即前往的 href 只會是本站 /go/<通行證>；沒有通行證時（密碼頁）先留白
   const go = goHref ? escapeHtml(goHref) : '#'
   const hidden = goHref ? '' : ' hidden'
   return `
-          <a id="continue" class="sl-btn sl-btn-continue" href="${go}"${hidden}>${escapeHtml(WARNING_COPY.continueLabel)}</a>
-          <a id="artwork-link" class="sl-link-artwork" href="${ARTWORK_LINK}" target="_blank" rel="noopener noreferrer"${hidden}>${escapeHtml(WARNING_COPY.artworkLabel)}</a>`
+          <a id="continue" class="sl-btn sl-btn-continue" href="${go}"${hidden}>
+  ${escapeHtml(WARNING_COPY.continueLabel)}
+</a>
+       `
 }
+ //  <a id="artwork-link" class="sl-link-artwork" href="${ARTWORK_LINK}" target="_blank" rel="noopener noreferrer"${hidden}>${escapeHtml(WARNING_COPY.artworkLabel)}</a>
 
 function warningHtml(options: { hidden: boolean; goHref: string | null }): string {
   const question = WARNING_COPY.question.split('\n').map(escapeHtml).join('<br>')
@@ -90,11 +93,12 @@ ${warningHtml({ hidden: true, goHref: null })}`
     }
 
     return htmlResponse(
-      renderPage({
-        title: WARNING_COPY.title,
-        body: warningHtml({ hidden: false, goHref: goPath(issueContinuePass(code)) }),
-      })
-    )
+  renderPage({
+    title: WARNING_COPY.title,
+    body: warningHtml({ hidden: false, goHref: goPath(issueContinuePass(code)) }),
+    scripts: ['/shortlink/common.js', '/shortlink/visit.js'], // 👈 記得加上這行！
+  })
+)
   } catch (err) {
     if (!(err instanceof ShortlinkDbError)) console.error('[shortlink] visit page error')
     return unavailablePage()
