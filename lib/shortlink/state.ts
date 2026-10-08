@@ -45,6 +45,7 @@ export function verifyContinuePass(token: unknown, now: number = Date.now()): Pa
   return { ok: true, shortCode }
 }
 
-export function continuePath(pass: string): string {
-  return `/artwork/${encodeURIComponent(pass)}`
+/** 「立即前往」目的地：伺服器端 302 導向原始網址（/go/<通行證>），不把網址寫進頁面。 */
+export function goPath(pass: string): string {
+  return `/go/${encodeURIComponent(pass)}`
 }

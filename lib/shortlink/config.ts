@@ -34,9 +34,6 @@ export const PASSWORD_MAX_LENGTH = 128
 /** Delete token 格式：del_ + 32 bytes base64url（43 字元） */
 export const DELETE_TOKEN_PATTERN = /^del_[A-Za-z0-9_-]{43}$/
 
-/** 內容警示頁倒數秒數 */
-export const REDIRECT_COUNTDOWN_SECONDS = 3
-
 /** API request body 最大位元組數 */
 export const MAX_BODY_BYTES = 8 * 1024
 
@@ -53,8 +50,26 @@ export const RATE_LIMITS = {
   deletePerIp: { windowSeconds: 10 * 60, maxHits: 10 },
 } as const
 
-/** 「繼續前往」通行證有效秒數（警示頁 → 作品頁）。逾時需重新開啟短網址。 */
+/** 「立即前往」通行證有效秒數（警示頁 → 原始網址）。逾時需重新開啟短網址。 */
 export const CONTINUE_PASS_TTL_SECONDS = 10 * 60
+
+/**
+ * 作品網站網址 —— server-side 固定常數，集中管理。
+ * 目前用 Google 當測試網址，之後改成真正的作品網站只要改這一行。
+ * 絕不接受使用者透過 query string（?url= / ?redirect= / ?destination= /
+ * ?artwork=）修改；/artwork-site 只會導向這個固定值。
+ */
+const ARTWORK_URL = 'https://www.google.com/'
+
+/** 取得作品網站網址（確認仍是 http/https，否則視為未設定）。 */
+export function getArtworkUrl(): string | null {
+  try {
+    const u = new URL(ARTWORK_URL)
+    return u.protocol === 'http:' || u.protocol === 'https:' ? u.href : null
+  } catch {
+    return null
+  }
+}
 
 /**
  * 內容警示頁文字 —— 要改文案只改這裡，不需要動任何流程程式。
@@ -66,7 +81,10 @@ export const WARNING_COPY = {
   check: '已通過網址格式檢查',
   note: '（本頁含推廣贊助）',
   question: '此網址可能包含成人內容，\n您是否已年滿 18 歲？',
-  continueLabel: '繼續前往',
+  /** 主要動作：在目前分頁前往訪客原本要去的網址 */
+  continueLabel: '立即前往',
+  /** 選擇性：訪客自行決定要不要看作品，明確告知會另開新分頁到外部網站 */
+  artworkLabel: '查看我的作品（另開新分頁）',
 } as const
 
 /** 短網址頁面共用頁尾文字 */

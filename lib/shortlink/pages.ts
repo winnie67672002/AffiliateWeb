@@ -1,10 +1,7 @@
-import { randomInt } from 'node:crypto'
-import { ARTWORKS, type Artwork } from './artworks'
 import { escapeHtml, htmlResponse, renderPage } from './html'
 
 // ============================================================================
-// 短網址頁面共用片段：狀態頁（404 / 410 / 503）與作品區塊
-// （原本寫在 app/s/[code]/route.ts，作品頁也需要，所以抽到這裡共用）
+// 短網址頁面共用的狀態頁（404 / 410 / 503）
 // ============================================================================
 
 export function statusPage(status: 403 | 404 | 410, title: string, message: string): Response {
@@ -44,20 +41,4 @@ export function unavailablePage(): Response {
     }),
     503
   )
-}
-
-export function pickArtwork(): Artwork | null {
-  const valid = ARTWORKS.filter((a) => typeof a.src === 'string' && a.src.startsWith('/') && !a.src.startsWith('//'))
-  if (valid.length === 0) return null
-  return valid[randomInt(valid.length)]
-}
-
-export function artworkHtml(artwork: Artwork | null): string {
-  if (!artwork) return ''
-  const caption = artwork.caption ? `<span class="sl-art-caption">${escapeHtml(artwork.caption)}</span>` : ''
-  return `
-          <figure class="sl-art">
-            <img src="${escapeHtml(artwork.src)}" alt="${escapeHtml(artwork.alt)}" loading="eager" decoding="async">
-            <figcaption><span class="sl-art-title">${escapeHtml(artwork.title)}</span>${caption}</figcaption>
-          </figure>`
 }

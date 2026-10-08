@@ -40,8 +40,8 @@ export function safeJsonForHtml(data: unknown): string {
  */
 const CSP = [
   "default-src 'none'",
-  "script-src 'self'",
-  "style-src 'self'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
   "connect-src 'self'",
   "form-action 'self'",

@@ -2,7 +2,7 @@ import { WARNING_COPY } from '@/lib/shortlink/config'
 import { findShortLink, isExpired, ShortlinkDbError } from '@/lib/shortlink/db'
 import { escapeHtml, htmlResponse, renderPage } from '@/lib/shortlink/html'
 import { expiredPage, notFoundPage, unavailablePage } from '@/lib/shortlink/pages'
-import { continuePath, issueContinuePass } from '@/lib/shortlink/state'
+import { goPath, issueContinuePass } from '@/lib/shortlink/state'
 import { isSafeRedirectUrl, isValidShortCode } from '@/lib/shortlink/validate'
 
 // ============================================================================
@@ -10,9 +10,12 @@ import { isSafeRedirectUrl, isValidShortCode } from '@/lib/shortlink/validate'
 // 使用者實際造訪的是 https://goodpickslab.com/<code>，由 proxy.ts rewrite 到這裡。
 //
 // 流程：查 short_code → 不存在/已刪除 404 → 過期 410 →
-//       有密碼：密碼頁 → /api/unlock 驗證成功後回傳「繼續前往」通行證網址
-//       沒密碼：直接顯示內容警示頁（通行證網址由伺服器在此產生）
-//       → [繼續前往] 另開新分頁 → /artwork/<通行證> → 作品 → 自動跳轉原始網址
+//       有密碼：密碼頁 → /api/unlock 驗證成功後回傳「立即前往」通行證網址
+//       沒密碼：直接顯示內容警示頁
+//
+// 警示頁上有兩個動作，都是訪客自己點，沒有任何背景自動開啟：
+//   ① 立即前往 → /go/<通行證>（目前分頁）→ 伺服器 302 導向原始網址
+//   ② 查看我的作品（另開新分頁，選擇性）→ /artwork-site（新分頁）→ 固定作品網站
 //
 // 這一頁「不會」輸出原始網址、作品網址或任何目的地資訊。
 // 所有 query string（?url= / ?redirect= / ?destination= …）一律忽略。
@@ -20,13 +23,19 @@ import { isSafeRedirectUrl, isValidShortCode } from '@/lib/shortlink/validate'
 
 export const dynamic = 'force-dynamic'
 
-/** 「繼續前往」：新分頁 + noopener noreferrer（防 reverse tabnabbing）。href 只會是本站 /artwork/<通行證>。 */
-function continueLinkHtml(href: string | null): string {
-  const hrefAttr = href ? escapeHtml(href) : '#'
-  return `<a id="continue" class="sl-btn sl-btn-continue" href="${hrefAttr}" target="_blank" rel="noopener noreferrer"${href ? '' : ' hidden'}>${escapeHtml(WARNING_COPY.continueLabel)}</a>`
+// 「查看我的作品」是固定的本站路徑，與短網址無關，不含任何目的地網址
+const ARTWORK_LINK = '/artwork-site'
+
+function actionsHtml(goHref: string | null): string {
+  // 立即前往的 href 只會是本站 /go/<通行證>；沒有通行證時（密碼頁）先留白
+  const go = goHref ? escapeHtml(goHref) : '#'
+  const hidden = goHref ? '' : ' hidden'
+  return `
+          <a id="continue" class="sl-btn sl-btn-continue" href="${go}"${hidden}>${escapeHtml(WARNING_COPY.continueLabel)}</a>
+          <a id="artwork-link" class="sl-link-artwork" href="${ARTWORK_LINK}" target="_blank" rel="noopener noreferrer"${hidden}>${escapeHtml(WARNING_COPY.artworkLabel)}</a>`
 }
 
-function warningHtml(options: { hidden: boolean; continueHref: string | null }): string {
+function warningHtml(options: { hidden: boolean; goHref: string | null }): string {
   const question = WARNING_COPY.question.split('\n').map(escapeHtml).join('<br>')
   return `
         <section id="warning" class="sl-card sl-warning"${options.hidden ? ' hidden' : ''}>
@@ -39,7 +48,7 @@ function warningHtml(options: { hidden: boolean; continueHref: string | null }):
           </ul>
           <p class="sl-note">${escapeHtml(WARNING_COPY.note)}</p>
           <p class="sl-adult">${question}</p>
-          ${continueLinkHtml(options.continueHref)}
+          ${actionsHtml(options.goHref)}
         </section>`
 }
 
@@ -64,7 +73,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ cod
             <button class="sl-btn" id="submit" type="submit">Unlock</button>
           </form>
         </section>
-${warningHtml({ hidden: true, continueHref: null })}`
+${warningHtml({ hidden: true, goHref: null })}`
       return htmlResponse(
         renderPage({
           title: 'Password Required',
@@ -83,7 +92,7 @@ ${warningHtml({ hidden: true, continueHref: null })}`
     return htmlResponse(
       renderPage({
         title: WARNING_COPY.title,
-        body: warningHtml({ hidden: false, continueHref: continuePath(issueContinuePass(code)) }),
+        body: warningHtml({ hidden: false, goHref: goPath(issueContinuePass(code)) }),
       })
     )
   } catch (err) {

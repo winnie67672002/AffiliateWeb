@@ -43,9 +43,11 @@ async function request(path: string, init: RequestInit & { prefer?: string } = {
   const { restUrl, serviceKey } = getDbConfig()
   const headers: Record<string, string> = {
     apikey: serviceKey,
-    Authorization: `Bearer ${serviceKey}`,
     Accept: 'application/json',
   }
+  // Supabase 新版金鑰（sb_secret_...）不是 JWT，只能放在 apikey 標頭，
+  // 放進 Authorization: Bearer 會被拒絕。舊版 JWT 格式（eyJ...，三段）才同時放 Bearer。
+  if (serviceKey.split('.').length === 3) headers.Authorization = `Bearer ${serviceKey}`
   if (init.body !== undefined) headers['Content-Type'] = 'application/json'
   if (init.prefer) headers.Prefer = init.prefer
 

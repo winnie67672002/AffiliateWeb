@@ -11,14 +11,14 @@ import {
   readJsonBody,
   serverErrorResponse,
 } from '@/lib/shortlink/http'
-import { continuePath, issueContinuePass } from '@/lib/shortlink/state'
+import { goPath, issueContinuePass } from '@/lib/shortlink/state'
 import { isSafeRedirectUrl, isValidShortCode } from '@/lib/shortlink/validate'
 import { PASSWORD_MAX_LENGTH } from '@/lib/shortlink/config'
 
 // ============================================================================
 // POST /api/unlock — 驗證短網址密碼
 // Body: { "code": "Ab3xK9q", "password": "..." }
-// 密碼正確才回傳「繼續前往」通行證網址（/artwork/<token>），不回傳原始網址；
+// 密碼正確才回傳「立即前往」通行證網址（/go/<token>），不回傳原始網址；
 // 錯誤一律回 "Invalid password"，不透露任何接近程度。
 // Rate limit：同 IP 10 次 / 10 分鐘，同一短網址 30 次 / 小時（擋分散式猜測）。
 // ============================================================================
@@ -61,8 +61,9 @@ export async function POST(request: NextRequest) {
       return errorResponse(500, '發生錯誤，請稍後再試')
     }
 
-    // 不把原始網址交給前端；只回傳「繼續前往」通行證網址（綁定此 short code、短時效）
-    return jsonResponse({ continueUrl: continuePath(issueContinuePass(code)) })
+    // 不把原始網址交給前端；只回傳「立即前往」通行證網址（綁定此 short code、短時效）。
+    // 「查看我的作品」是固定的本站路徑 /artwork-site，與短網址無關，不需要通行證。
+    return jsonResponse({ goUrl: goPath(issueContinuePass(code)) })
   } catch (err) {
     return serverErrorResponse(err)
   }
