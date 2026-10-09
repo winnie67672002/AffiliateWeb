@@ -17,9 +17,10 @@ import { isSafeRedirectUrl } from '@/lib/shortlink/validate'
 // / ?artwork=）一律忽略，不可能變成 open redirect。
 // ============================================================================
 
+
 export const dynamic = 'force-dynamic'
 
-export async function GET(_request: Request, { params }: { params: Promise<{ token: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
   const pass = verifyContinuePass(token)
   if (!pass.ok) {
@@ -36,13 +37,30 @@ export async function GET(_request: Request, { params }: { params: Promise<{ tok
       return notFoundPage()
     }
 
+    // 判斷前端是否為 AJAX / fetch 請求
+    const isAjax = request.headers.get('x-requested-with') === 'XMLHttpRequest'
+
+    if (isAjax) {
+      // 1. 前端帶有 X-Requested-With 標頭時：回傳 JSON 目的地，不發送 302
+      return NextResponse.json(
+        { url: link.original_url },
+        {
+          headers: {
+            'Cache-Control': 'no-store',
+            'X-Robots-Tag': 'noindex, nofollow',
+          },
+        }
+      )
+    }
+
+    // 2. 一般瀏覽器直接造訪時：維持原有的 302 轉址
     const res = NextResponse.redirect(link.original_url, 302)
     res.headers.set('Referrer-Policy', 'no-referrer')
     res.headers.set('Cache-Control', 'no-store')
     res.headers.set('X-Robots-Tag', 'noindex, nofollow')
     return res
   } catch (err) {
-    if (!(err instanceof ShortlinkDbError)) console.error('[shortlink] go redirect error')
+    if (!(err instanceof ShortlinkDbError)) console.error('[shortlink] go redirect error', err)
     return unavailablePage()
   }
 }

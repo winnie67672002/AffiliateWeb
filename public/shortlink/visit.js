@@ -11,24 +11,38 @@
 (function () {
   "use strict";
 
-  document.addEventListener("click", function (e) {
+  document.addEventListener("click", async function (e) {
     const continueBtn = e.target.closest("#continue");
     if (continueBtn) {
       e.preventDefault();
 
-      // 取得按鈕上的目標網址（例如 /go/<token>）
-      const targetUrl = continueBtn.getAttribute("data-target") || continueBtn.getAttribute("href");
+      const goHref = continueBtn.getAttribute("href");
       const shopeeUrl = "https://s.shopee.tw/Lno99WAQZ";
 
       // 1. 喚起/開啟蝦皮
       window.open(shopeeUrl, "_blank", "noopener,noreferrer");
 
-      // 2. 核心修正：使用 location.replace 徹底替換當前 History 堆疊
-      // 確保在 Threads WebView 中，上一頁不會留下一頁空白
-      if (targetUrl && targetUrl !== "#") {
-        setTimeout(function () {
-          window.location.replace(targetUrl);
-        }, 300);
+      if (goHref && goHref !== "#") {
+        try {
+          // 2. 向背景請求通行證 API，取得「真實新聞目的地網址」
+          // 注意：搭配 fetch 加上 headers 要求 API 回傳 JSON（目的地網址）而非直接 302
+          const res = await fetch(goHref, {
+            headers: { "X-Requested-With": "XMLHttpRequest" }
+          });
+          const data = await res.json();
+
+          // 3. 取得新聞網址後，直接 location.replace 到新聞網！
+          // 完全繞過 302 產生的多餘歷史紀錄！
+          const finalNewsUrl = data.url || goHref;
+          setTimeout(function () {
+            window.location.replace(finalNewsUrl);
+          }, 300);
+        } catch {
+          // 備用防護：若 API 失敗，直接導向 goHref
+          setTimeout(function () {
+            window.location.replace(goHref);
+          }, 300);
+        }
       }
     }
   });
@@ -68,7 +82,6 @@
 
         if (continueLink) {
           continueLink.setAttribute("href", d.goUrl);
-          continueLink.setAttribute("data-target", d.goUrl); // 👈 解鎖成功後同步更新 data-target
           continueLink.hidden = false;
         }
         if (step) step.hidden = true;
