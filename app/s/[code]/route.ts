@@ -98,8 +98,8 @@ ${warningHtml({ hidden: true, goHref: null })}`
       return notFoundPage()
     }
 
-    return htmlResponse(
-     renderPage({
+    const response = htmlResponse(
+    renderPage({
       title: WARNING_COPY.title,
       body: warningHtml({ 
         hidden: false, 
@@ -108,9 +108,15 @@ ${warningHtml({ hidden: true, goHref: null })}`
       }),
       scripts: ['/shortlink/common.js', '/shortlink/visit.js'],
     })
-    )
+  )
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+  response.headers.set('Pragma', 'no-cache')
+  response.headers.set('Expires', '0')
+
+  return response
   } catch (err) {
     if (!(err instanceof ShortlinkDbError)) console.error('[shortlink] visit page error')
     return unavailablePage()
   }
+  
 }
