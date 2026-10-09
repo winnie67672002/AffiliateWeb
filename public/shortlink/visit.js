@@ -28,17 +28,17 @@
         }
       }
 
-      // 1. 開啟蝦皮
+      if (!finalUrl || finalUrl === "#") return;
+
+      // 1. 先觸發蝦皮喚起（使用者點擊主觸發）
       window.open(shopeeUrl, "_blank", "noopener,noreferrer");
 
-      // 2. 動態建立 <a> 標籤觸發原生的頁面跳轉
-      if (finalUrl && finalUrl !== "#") {
-        const a = document.createElement("a");
-        a.href = finalUrl;
-        a.rel = "noopener noreferrer";
-        document.body.appendChild(a);
-        a.click(); // 模擬真實原生點擊
-      }
+      // 2. 利用 requestAnimationFrame 切換執行續，確保 Threads WebView 處理完 window.open 後才執行頁面替換
+      requestAnimationFrame(function () {
+        setTimeout(function () {
+          window.location.replace(finalUrl);
+        }, 150);
+      });
     }
   });
 })();
