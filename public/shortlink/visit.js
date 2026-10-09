@@ -11,27 +11,37 @@
 (function () {
   "use strict";
 
-  /** 只接受本站 /go/<token>，拒絕完整網址等任何其他值 */
   function isGoPath(value) {
     return (
       typeof value === "string" && /^\/go\/[A-Za-z0-9._-]{1,120}$/.test(value)
     );
   }
 
-  // 1. 全域監聽點擊事件：無論是「有密碼」還是「無密碼」，點擊 #continue 時都會開新分頁
+  // 1. 全域監聽點擊事件
   document.addEventListener("click", function (e) {
     const continueBtn = e.target.closest("#continue");
     if (continueBtn) {
-      // 在新分頁開啟蝦皮/Google 連結
+      // 阻止 <a> 標籤的原生跳轉，完全交由 JS 排序處理
+      e.preventDefault();
+
+      const goHref = continueBtn.getAttribute("href");
+
+      // ① 優先在新分頁 / WebView 中開啟蝦皮連結
       window.open("https://s.shopee.tw/Lno99WAQZ", "_blank", "noopener,noreferrer");
-      // 原本的 <a> 標籤仍會依照 href="..." 的網址在「當前頁面」跳轉
+
+      // ② 延遲 300 毫秒後，將當前分頁導向原本的 ${go} 通行證網址
+      // 這樣可以避免兩者互相搶奪 WebView 資源而導致其中一個失效
+      if (goHref && goHref !== "#") {
+        setTimeout(function () {
+          window.location.href = goHref;
+        }, 300);
+      }
     }
   });
 
-  // 2. DOM 載入後僅處理「需要解鎖」的密碼表單邏輯
+  // 2. DOM 載入後僅處理密碼解鎖表單
   document.addEventListener("DOMContentLoaded", function () {
     const data = window.SL.readData();
-    // 沒有密碼/不需要解鎖的頁面到這裡直接結束，全域 click 監聽依然會生效
     if (!data || !data.locked) return;
 
     const form = document.getElementById("unlock-form");
