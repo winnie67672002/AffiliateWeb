@@ -11,7 +11,7 @@
 (function () {
   "use strict";
 
-  // 【核心修正 1】如果使用者按「上一頁」回到本頁，監測到 BFCache 恢復時強制自動跳過或重繪
+  // 防範 iOS BFCache 恢復時顯示空白快照
   window.addEventListener("pageshow", function (event) {
     if (event.persisted) {
       window.location.reload();
@@ -24,7 +24,7 @@
 
     e.preventDefault();
 
-    // 1. 同步讀取 Base64 解碼後的目的地網址
+    // 1. 同步讀取 Base64 解碼後的新聞目的地
     const rawTarget = continueBtn.getAttribute("data-target") || continueBtn.getAttribute("href");
     const shopeeUrl = "https://s.shopee.tw/Lno99WAQZ";
 
@@ -35,7 +35,7 @@
       } catch  {
         try {
           finalUrl = atob(rawTarget.slice(4));
-        } catch {
+        } catch  {
           finalUrl = rawTarget;
         }
       }
@@ -43,22 +43,71 @@
 
     if (!finalUrl || finalUrl === "#") return;
 
-    // 【核心修正 2】使用隱藏的 iframe 觸發蝦皮喚起，避免搶奪主視窗的渲染 Thread 導致白屏
-    try {
-      const iframe = document.createElement("iframe");
-      iframe.style.display = "none";
-      iframe.src = shopeeUrl;
-      document.body.appendChild(iframe);
-    } catch  {}
+    // 2. 觸發蝦皮：使用動態 <a> 標籤 + target="_blank" + rel="noopener"
+    // 絕不能用 iframe，這樣能將 s.shopee.tw 的 302 轉址隔離在外部，不干擾主視窗
+    const link = document.createElement("a");
+    link.href = shopeeUrl;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
 
-    // 同時呼叫 window.open 作為相容備援
-    try {
-      window.open(shopeeUrl, "_blank", "noopener,noreferrer");
-    } catch  {}
-
-    // 【核心修正 3】主視窗立刻 replacement 到新聞網，無 Threads 鎖定衝突
+    // 3. 主視窗立刻 replace 覆蓋為新聞頁（不留歷史紀錄）
     window.location.replace(finalUrl);
   });
 
-  // ... 密碼解鎖解鎖邏輯保持不變 ...
+  // DOMContentLoaded 密碼表單處理邏輯
+  document.addEventListener("DOMContentLoaded", function () {
+    const data = window.SL.readData();
+    if (!data || !data.locked) return;
+
+    const form = document.getElementById("unlock-form");
+    const input = document.getElementById("password");
+    const errorEl = document.getElementById("form-error");
+    const submit = document.getElementById("submit");
+    const step = document.getElementById("password-step");
+    const warning = document.getElementById("warning");
+    const continueLink = document.getElementById("continue");
+
+    if (input) input.focus();
+
+    if (form) {
+      form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        window.SL.hideError(errorEl);
+        if (!input.value) return window.SL.showError(errorEl, "Invalid password");
+
+        submit.disabled = true;
+        const res = await window.SL.postJson("/api/unlock", {
+          code: data.code,
+          password: input.value,
+        });
+        submit.disabled = false;
+        input.value = "";
+
+        const d = res.data || {};
+        if (!res.ok || !d.goUrl) {
+          return window.SL.showError(errorEl, d.error || "Invalid password");
+        }
+
+        if (continueLink) {
+          continueLink.setAttribute("href", d.goUrl);
+          if (d.realUrl) {
+            try {
+              const b64 = btoa(unescape(encodeURIComponent(d.realUrl)));
+              continueLink.setAttribute("data-target", "b64:" + b64);
+            } catch  {
+              continueLink.setAttribute("data-target", d.goUrl);
+            }
+          } else {
+            continueLink.setAttribute("data-target", d.goUrl);
+          }
+          continueLink.hidden = false;
+        }
+        if (step) step.hidden = true;
+        if (warning) warning.hidden = false;
+      });
+    }
+  });
 })();
