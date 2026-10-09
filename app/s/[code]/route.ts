@@ -31,7 +31,7 @@ function actionsHtml(goHref: string | null, realUrl?: string): string {
   const hidden = goHref ? '' : ' hidden'
   
   // 將真實目的地網址轉換為 Base64 字串，若無則降級使用 goHref
-  const targetAttr = realUrl ? `b64:${Buffer.from(realUrl).toString('base64')}` : go
+  const targetAttr = realUrl ? `b64:${Buffer.from(realUrl, 'utf-8').toString('base64')}` : go
 
   return `
           <a id="continue" 
