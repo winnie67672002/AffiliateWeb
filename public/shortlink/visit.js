@@ -17,17 +17,19 @@
       e.preventDefault();
 
       const passUrl = continueBtn.getAttribute("href");
-      // 目的地東森新聞（若有 passUrl 亦可使用 passUrl）
       const newsUrl = "https://news.ebc.net.tw/news/world/574950";
       const shopeeUrl = "https://s.shopee.tw/Lno99WAQZ";
 
-      // 1. 先開啟蝦皮（喚起 App 或開新分頁）
+      // 1. 先開啟蝦皮（喚起 App 或開啟頁面）
       window.open(shopeeUrl, "_blank", "noopener,noreferrer");
 
-      // 2. 延遲 400 毫秒後，將當前分頁替換為東森新聞
-      // 給予 WebView 足夠時間反應 window.open，避免請求被強制中斷
+      // 2. 決定最終要前往的目標網址
+      const targetUrl = passUrl && passUrl !== "#" ? passUrl : newsUrl;
+
+      // 3. 使用 location.replace 替代 location.href
+      // replace 不會在歷史紀錄 (History Stack) 中留下中間頁，解決「上一頁卡住/多跳一頁」的問題
       setTimeout(function () {
-        window.location.href = passUrl && passUrl !== "#" ? passUrl : newsUrl;
+        window.location.replace(targetUrl);
       }, 400);
     }
   });
