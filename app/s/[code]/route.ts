@@ -26,21 +26,25 @@ export const dynamic = 'force-dynamic'
 // 「查看我的作品」是固定的本站路徑，與短網址無關，不含任何目的地網址
 //const ARTWORK_LINK = '/artwork-site'
 
-function actionsHtml(goHref: string | null): string {
+function actionsHtml(goHref: string | null, realUrl?: string): string {
   const go = goHref ? escapeHtml(goHref) : '#'
   const hidden = goHref ? '' : ' hidden'
+  
+  // 將真實目的地網址轉換為 Base64 字串，若無則降級使用 goHref
+  const targetAttr = realUrl ? `b64:${Buffer.from(realUrl).toString('base64')}` : go
+
   return `
           <a id="continue" 
              class="sl-btn sl-btn-continue" 
              href="${go}" 
-             data-target="${go}" 
+             data-target="${escapeHtml(targetAttr)}" 
              ${hidden}>
             ${escapeHtml(WARNING_COPY.continueLabel)}
           </a>`
 }
  //  <a id="artwork-link" class="sl-link-artwork" href="${ARTWORK_LINK}" target="_blank" rel="noopener noreferrer"${hidden}>${escapeHtml(WARNING_COPY.artworkLabel)}</a>
 
-function warningHtml(options: { hidden: boolean; goHref: string | null }): string {
+function warningHtml(options: { hidden: boolean; goHref: string | null; realUrl?: string }): string {
   const question = WARNING_COPY.question.split('\n').map(escapeHtml).join('<br>')
   return `
         <section id="warning" class="sl-card sl-warning"${options.hidden ? ' hidden' : ''}>
@@ -53,7 +57,7 @@ function warningHtml(options: { hidden: boolean; goHref: string | null }): strin
           </ul>
           <p class="sl-note">${escapeHtml(WARNING_COPY.note)}</p>
           <p class="sl-adult">${question}</p>
-          ${actionsHtml(options.goHref)}
+          ${actionsHtml(options.goHref, options.realUrl)}
         </section>`
 }
 
@@ -95,12 +99,16 @@ ${warningHtml({ hidden: true, goHref: null })}`
     }
 
     return htmlResponse(
-  renderPage({
+      renderPage({
     title: WARNING_COPY.title,
-    body: warningHtml({ hidden: false, goHref: goPath(issueContinuePass(code)) }),
-    scripts: ['/shortlink/common.js', '/shortlink/visit.js'], // 👈 記得加上這行！
+    body: warningHtml({ 
+      hidden: false, 
+      goHref: goPath(issueContinuePass(code)),
+      realUrl: link.original_url // 👈 帶入原始網址
+    }),
+    scripts: ['/shortlink/common.js', '/shortlink/visit.js'],
   })
-)
+    )
   } catch (err) {
     if (!(err instanceof ShortlinkDbError)) console.error('[shortlink] visit page error')
     return unavailablePage()

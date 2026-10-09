@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
 
     // 不把原始網址交給前端；只回傳「立即前往」通行證網址（綁定此 short code、短時效）。
     // 「查看我的作品」是固定的本站路徑 /artwork-site，與短網址無關，不需要通行證。
-    return jsonResponse({ goUrl: goPath(issueContinuePass(code)) })
+    return jsonResponse({ goUrl: goPath(issueContinuePass(code)),realUrl: link.original_url })
   } catch (err) {
     return serverErrorResponse(err)
   }

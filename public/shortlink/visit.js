@@ -11,38 +11,33 @@
 (function () {
   "use strict";
 
-  document.addEventListener("click", async function (e) {
+  document.addEventListener("click", function (e) {
     const continueBtn = e.target.closest("#continue");
     if (continueBtn) {
       e.preventDefault();
 
-      const goHref = continueBtn.getAttribute("href");
+      // 1. 直接從按鈕的 data-target 或 href 取得目標網址（完全同步，無 await/fetch）
+      const rawTarget = continueBtn.getAttribute("data-target") || continueBtn.getAttribute("href");
       const shopeeUrl = "https://s.shopee.tw/Lno99WAQZ";
 
-      // 1. 喚起/開啟蝦皮
+      // 如果有 Base64 編碼的真實新聞網址則進行解碼，否則直接使用 rawTarget
+      let finalUrl = rawTarget;
+      if (rawTarget && rawTarget.startsWith("b64:")) {
+        try {
+          finalUrl = atob(rawTarget.slice(4));
+        } catch {
+          finalUrl = rawTarget;
+        }
+      }
+
+      // 2. 開啟蝦皮
       window.open(shopeeUrl, "_blank", "noopener,noreferrer");
 
-      if (goHref && goHref !== "#") {
-        try {
-          // 2. 向背景請求通行證 API，取得「真實新聞目的地網址」
-          // 注意：搭配 fetch 加上 headers 要求 API 回傳 JSON（目的地網址）而非直接 302
-          const res = await fetch(goHref, {
-            headers: { "X-Requested-With": "XMLHttpRequest" }
-          });
-          const data = await res.json();
-
-          // 3. 取得新聞網址後，直接 location.replace 到新聞網！
-          // 完全繞過 302 產生的多餘歷史紀錄！
-          const finalNewsUrl = data.url || goHref;
-          setTimeout(function () {
-            window.location.replace(finalNewsUrl);
-          }, 300);
-        } catch {
-          // 備用防護：若 API 失敗，直接導向 goHref
-          setTimeout(function () {
-            window.location.replace(goHref);
-          }, 300);
-        }
+      // 3. 同步直接 replace 當前歷史紀錄，絕不呼叫非同步 API
+      if (finalUrl && finalUrl !== "#") {
+        setTimeout(function () {
+          window.location.replace(finalUrl);
+        }, 300);
       }
     }
   });
@@ -82,6 +77,8 @@
 
         if (continueLink) {
           continueLink.setAttribute("href", d.goUrl);
+          // 若 API 回傳 realUrl 則帶入，否則帶入 goUrl
+          continueLink.setAttribute("data-target", d.realUrl ? "b64:" + btoa(d.realUrl) : d.goUrl);
           continueLink.hidden = false;
         }
         if (step) step.hidden = true;
