@@ -16,31 +16,64 @@
     if (continueBtn) {
       e.preventDefault();
 
-      const passUrl = continueBtn.getAttribute("href");
+      // 取得按鈕上的目標網址（例如 /go/<token>）
+      const targetUrl = continueBtn.getAttribute("data-target") || continueBtn.getAttribute("href");
       const shopeeUrl = "https://s.shopee.tw/Lno99WAQZ";
 
-      // 1. 先開啟蝦皮（喚起 App 或新頁面）
+      // 1. 喚起/開啟蝦皮
       window.open(shopeeUrl, "_blank", "noopener,noreferrer");
 
-      if (passUrl && passUrl !== "#") {
-        // 2. 在背景請求通行證，並取得 302 轉址後的「最終新聞網址」
-        fetch(passUrl, { method: "HEAD", redirect: "follow" })
-          .then(function (response) {
-            // response.url 即為 302 轉址後的最終目的地（新聞網址）
-            const finalDestination = response.url || passUrl;
-            
-            // 延遲 300ms 後，將當前分頁直接替換為最終新聞網址
-            setTimeout(function () {
-              window.location.replace(finalDestination);
-            }, 300);
-          })
-          .catch(function () {
-            // 若背景請求失敗，備用方案直接帶往 passUrl
-            setTimeout(function () {
-              window.location.replace(passUrl);
-            }, 300);
-          });
+      // 2. 核心修正：使用 location.replace 徹底替換當前 History 堆疊
+      // 確保在 Threads WebView 中，上一頁不會留下一頁空白
+      if (targetUrl && targetUrl !== "#") {
+        setTimeout(function () {
+          window.location.replace(targetUrl);
+        }, 300);
       }
+    }
+  });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const data = window.SL.readData();
+    if (!data || !data.locked) return;
+
+    const form = document.getElementById("unlock-form");
+    const input = document.getElementById("password");
+    const errorEl = document.getElementById("form-error");
+    const submit = document.getElementById("submit");
+    const step = document.getElementById("password-step");
+    const warning = document.getElementById("warning");
+    const continueLink = document.getElementById("continue");
+
+    if (input) input.focus();
+
+    if (form) {
+      form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        window.SL.hideError(errorEl);
+        if (!input.value) return window.SL.showError(errorEl, "Invalid password");
+
+        submit.disabled = true;
+        const res = await window.SL.postJson("/api/unlock", {
+          code: data.code,
+          password: input.value,
+        });
+        submit.disabled = false;
+        input.value = "";
+
+        const d = res.data || {};
+        if (!res.ok || !d.goUrl) {
+          return window.SL.showError(errorEl, d.error || "Invalid password");
+        }
+
+        if (continueLink) {
+          continueLink.setAttribute("href", d.goUrl);
+          continueLink.setAttribute("data-target", d.goUrl); // 👈 解鎖成功後同步更新 data-target
+          continueLink.hidden = false;
+        }
+        if (step) step.hidden = true;
+        if (warning) warning.hidden = false;
+      });
     }
   });
 })();

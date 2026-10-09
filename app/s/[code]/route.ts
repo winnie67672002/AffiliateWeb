@@ -27,14 +27,16 @@ export const dynamic = 'force-dynamic'
 //const ARTWORK_LINK = '/artwork-site'
 
 function actionsHtml(goHref: string | null): string {
-  // 立即前往的 href 只會是本站 /go/<通行證>；沒有通行證時（密碼頁）先留白
   const go = goHref ? escapeHtml(goHref) : '#'
   const hidden = goHref ? '' : ' hidden'
   return `
-          <a id="continue" class="sl-btn sl-btn-continue" href="${go}"${hidden}>
-  ${escapeHtml(WARNING_COPY.continueLabel)}
-</a>
-       `
+          <a id="continue" 
+             class="sl-btn sl-btn-continue" 
+             href="${go}" 
+             data-target="${go}" 
+             ${hidden}>
+            ${escapeHtml(WARNING_COPY.continueLabel)}
+          </a>`
 }
  //  <a id="artwork-link" class="sl-link-artwork" href="${ARTWORK_LINK}" target="_blank" rel="noopener noreferrer"${hidden}>${escapeHtml(WARNING_COPY.artworkLabel)}</a>
 
