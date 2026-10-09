@@ -31,9 +31,9 @@ function actionsHtml(goHref: string | null): string {
   const go = goHref ? escapeHtml(goHref) : '#'
   const hidden = goHref ? '' : ' hidden'
   return `
-          <a id="continue" class="sl-btn sl-btn-continue" href="${go}"${hidden}>
-  ${escapeHtml(WARNING_COPY.continueLabel)}
-</a>
+          <a id="continue" class="sl-btn sl-btn-continue" href="${go}" target="_blank" rel="noopener noreferrer"${hidden}>
+            ${escapeHtml(WARNING_COPY.continueLabel)}
+          </a>
        `
 }
  //  <a id="artwork-link" class="sl-link-artwork" href="${ARTWORK_LINK}" target="_blank" rel="noopener noreferrer"${hidden}>${escapeHtml(WARNING_COPY.artworkLabel)}</a>
