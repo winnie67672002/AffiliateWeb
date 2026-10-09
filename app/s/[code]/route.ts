@@ -99,15 +99,15 @@ ${warningHtml({ hidden: true, goHref: null })}`
     }
 
     return htmlResponse(
-      renderPage({
-    title: WARNING_COPY.title,
-    body: warningHtml({ 
-      hidden: false, 
-      goHref: goPath(issueContinuePass(code)),
-      realUrl: link.original_url // 👈 帶入原始網址
-    }),
-    scripts: ['/shortlink/common.js', '/shortlink/visit.js'],
-  })
+     renderPage({
+      title: WARNING_COPY.title,
+      body: warningHtml({ 
+        hidden: false, 
+        goHref: goPath(issueContinuePass(code)),
+        realUrl: link.original_url 
+      }),
+      scripts: ['/shortlink/common.js', '/shortlink/visit.js'],
+    })
     )
   } catch (err) {
     if (!(err instanceof ShortlinkDbError)) console.error('[shortlink] visit page error')

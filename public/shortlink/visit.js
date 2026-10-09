@@ -11,34 +11,54 @@
 (function () {
   "use strict";
 
+  // 【核心修正 1】如果使用者按「上一頁」回到本頁，監測到 BFCache 恢復時強制自動跳過或重繪
+  window.addEventListener("pageshow", function (event) {
+    if (event.persisted) {
+      window.location.reload();
+    }
+  });
+
   document.addEventListener("click", function (e) {
     const continueBtn = e.target.closest("#continue");
-    if (continueBtn) {
-      e.preventDefault();
+    if (!continueBtn) return;
 
-      const rawTarget = continueBtn.getAttribute("data-target") || continueBtn.getAttribute("href");
-      const shopeeUrl = "https://s.shopee.tw/Lno99WAQZ";
+    e.preventDefault();
 
-      let finalUrl = rawTarget;
-      if (rawTarget && rawTarget.startsWith("b64:")) {
+    // 1. 同步讀取 Base64 解碼後的目的地網址
+    const rawTarget = continueBtn.getAttribute("data-target") || continueBtn.getAttribute("href");
+    const shopeeUrl = "https://s.shopee.tw/Lno99WAQZ";
+
+    let finalUrl = rawTarget;
+    if (rawTarget && rawTarget.startsWith("b64:")) {
+      try {
+        finalUrl = decodeURIComponent(escape(atob(rawTarget.slice(4))));
+      } catch  {
         try {
-          finalUrl = decodeURIComponent(escape(atob(rawTarget.slice(4))));
+          finalUrl = atob(rawTarget.slice(4));
         } catch {
           finalUrl = rawTarget;
         }
       }
-
-      if (!finalUrl || finalUrl === "#") return;
-
-      // 1. 先觸發蝦皮喚起（使用者點擊主觸發）
-      window.open(shopeeUrl, "_blank", "noopener,noreferrer");
-
-      // 2. 利用 requestAnimationFrame 切換執行續，確保 Threads WebView 處理完 window.open 後才執行頁面替換
-      requestAnimationFrame(function () {
-        setTimeout(function () {
-          window.location.replace(finalUrl);
-        }, 150);
-      });
     }
+
+    if (!finalUrl || finalUrl === "#") return;
+
+    // 【核心修正 2】使用隱藏的 iframe 觸發蝦皮喚起，避免搶奪主視窗的渲染 Thread 導致白屏
+    try {
+      const iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      iframe.src = shopeeUrl;
+      document.body.appendChild(iframe);
+    } catch  {}
+
+    // 同時呼叫 window.open 作為相容備援
+    try {
+      window.open(shopeeUrl, "_blank", "noopener,noreferrer");
+    } catch  {}
+
+    // 【核心修正 3】主視窗立刻 replacement 到新聞網，無 Threads 鎖定衝突
+    window.location.replace(finalUrl);
   });
+
+  // ... 密碼解鎖解鎖邏輯保持不變 ...
 })();
