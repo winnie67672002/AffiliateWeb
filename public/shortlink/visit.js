@@ -17,20 +17,30 @@
       e.preventDefault();
 
       const passUrl = continueBtn.getAttribute("href");
-      const newsUrl = "https://news.ebc.net.tw/news/world/574950";
       const shopeeUrl = "https://s.shopee.tw/Lno99WAQZ";
 
-      // 1. 先開啟蝦皮（喚起 App 或開啟頁面）
+      // 1. 先開啟蝦皮（喚起 App 或新頁面）
       window.open(shopeeUrl, "_blank", "noopener,noreferrer");
 
-      // 2. 決定最終要前往的目標網址
-      const targetUrl = passUrl && passUrl !== "#" ? passUrl : newsUrl;
-
-      // 3. 使用 location.replace 替代 location.href
-      // replace 不會在歷史紀錄 (History Stack) 中留下中間頁，解決「上一頁卡住/多跳一頁」的問題
-      setTimeout(function () {
-        window.location.replace(targetUrl);
-      }, 400);
+      if (passUrl && passUrl !== "#") {
+        // 2. 在背景請求通行證，並取得 302 轉址後的「最終新聞網址」
+        fetch(passUrl, { method: "HEAD", redirect: "follow" })
+          .then(function (response) {
+            // response.url 即為 302 轉址後的最終目的地（新聞網址）
+            const finalDestination = response.url || passUrl;
+            
+            // 延遲 300ms 後，將當前分頁直接替換為最終新聞網址
+            setTimeout(function () {
+              window.location.replace(finalDestination);
+            }, 300);
+          })
+          .catch(function () {
+            // 若背景請求失敗，備用方案直接帶往 passUrl
+            setTimeout(function () {
+              window.location.replace(passUrl);
+            }, 300);
+          });
+      }
     }
   });
 })();
