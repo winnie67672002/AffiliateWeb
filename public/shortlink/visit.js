@@ -21,20 +21,22 @@
   document.addEventListener("click", function (e) {
     const continueBtn = e.target.closest("#continue");
     if (continueBtn) {
-      // 阻止 <a> 標籤的原生跳轉，完全交由 JS 排序處理
+      // 1. 阻止預設 <a> 跳轉，完全交由 JS 處理
       e.preventDefault();
 
-      const goHref = continueBtn.getAttribute("href");
+      const passUrl = continueBtn.getAttribute("href"); // 原本的 /go/<token> 通行證網址
+      const newsUrl = "https://s.shopee.tw/20w5tlkqgc"; // 新聞網址
 
-      // ① 優先在新分頁 / WebView 中開啟蝦皮連結
-      window.open("https://s.shopee.tw/Lno99WAQZ", "_blank", "noopener,noreferrer");
-
-      // ② 延遲 300 毫秒後，將當前分頁導向原本的 ${go} 通行證網址
-      // 這樣可以避免兩者互相搶奪 WebView 資源而導致其中一個失效
-      if (goHref && goHref !== "#") {
-        setTimeout(function () {
-          window.location.href = goHref;
-        }, 300);
+      // 2. 在手機 App WebView 中，直接使用當前視窗進行跳轉，避免被當成 Popup 阻擋
+      // 如果需要同時記錄通行證，可先請求背景 API，最後直接導向新聞頁：
+      if (passUrl && passUrl !== "#") {
+        // 先向本站伺服器記錄通行證（非同步）
+        fetch(passUrl, { method: "HEAD" }).finally(function () {
+          // 最終直接將當前頁面替換為新聞網址（相容手機 Threads WebView）
+          window.location.href = newsUrl;
+        });
+      } else {
+        window.location.href = newsUrl;
       }
     }
   });
